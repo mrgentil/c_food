@@ -8,7 +8,21 @@ const RootNavigator = () => {
   const Stack = createNativeStackNavigator();
   const { user } = UserAuth();
 
-  return !user ? <AuthStack /> : <AppStack />;
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+        gestureEnabled: true
+      }}
+    >
+      {user ? (
+        <Stack.Screen name="App" component={AppStack} />
+      ) : (
+        <Stack.Screen name="Auth" component={AuthStack} />
+      )}
+    </Stack.Navigator>
+  );
 };
 
 export default RootNavigator;

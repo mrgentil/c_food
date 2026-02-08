@@ -25,7 +25,7 @@ const DishInfo = ({ id, quantity }) => {
 
   return (
     <View className="flex-row items-center space-x-3 bg-white py-2 mt-4">
-      <Text className="font-semibold text-base text-[#00CCBB]">
+      <Text className="font-semibold text-base text-[#0EA5E9]">
         {quantity} x
       </Text>
       <Image

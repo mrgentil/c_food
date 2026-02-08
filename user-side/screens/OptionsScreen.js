@@ -41,7 +41,7 @@ const OptionsScreen = () => {
             className="px-4 mt-6 bg-white w-11/12 h-16 rounded-2xl flex-row justify-between items-center shadow-sm"
           >
             <Text className=" font-bold text-lg">My Profile</Text>
-            <ArrowRightIcon size={20} color="#00CCBB" />
+            <ArrowRightIcon size={20} color="#0EA5E9" />
           </Pressable>
 
           <Pressable
@@ -51,7 +51,7 @@ const OptionsScreen = () => {
             className="px-4 mt-6 bg-white w-11/12 h-16 rounded-2xl flex-row justify-between items-center shadow-sm "
           >
             <Text className=" font-bold text-lg">My Orders</Text>
-            <ArrowRightIcon size={20} color="#00CCBB" />
+            <ArrowRightIcon size={20} color="#0EA5E9" />
           </Pressable>
         </View>
 

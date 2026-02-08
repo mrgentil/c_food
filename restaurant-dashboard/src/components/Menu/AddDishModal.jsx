@@ -1,6 +1,7 @@
 import { useState } from "react";
-import {db } from "../../firebase/firebase"
-import { collection, addDoc } from "firebase/firestore"; 
+import { db } from "../../firebase/firebase"
+import { collection, addDoc } from "firebase/firestore";
+import ImageUpload from "../ImageUpload";
 
 const AddDishModal = ({ setIsActive, restaurantId }) => {
   const [name, setName] = useState("");
@@ -17,7 +18,7 @@ const AddDishModal = ({ setIsActive, restaurantId }) => {
       price: price,
       restaurantId: restaurantId,
     });
-     setIsActive(false)
+    setIsActive(false)
   };
 
   return (
@@ -71,12 +72,10 @@ const AddDishModal = ({ setIsActive, restaurantId }) => {
               </div>
 
               <div className="relative my-6">
-                <input
-                  type="text"
-                  value={image}
-                  onChange={(e) => setImage(e.target.value)}
-                  placeholder="Image link"
-                  className="w-full pl-2 pr-3 py-2 text-gray-500 bg-transparent outline-none border-2 focus:border-green-500 shadow-sm rounded-lg"
+                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase text-left">Image du Plat</label>
+                <ImageUpload
+                  initialValue={image}
+                  onUpload={(url) => setImage(url)}
                 />
               </div>
 

@@ -5,8 +5,16 @@ module.exports = {
     "./screens/**/*.{js,jsx,ts,tsx}",
     "./components/**/*.{js,jsx,ts,tsx}",
   ],
+  presets: [require("nativewind/preset")],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        primary: "#77b5fe", // New Brand Blue
+        secondary: "#333333",
+        accent: "#FFC107",
+        paper: "#fcfcfd", // Custom Background
+      },
+    },
   },
   plugins: [],
 };

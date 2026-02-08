@@ -25,28 +25,34 @@ const RestaurantCard = ({
           id,
         });
       }}
-      className="bg-white mr-3 rounded-2xl border border-gray-200"
+      className="bg-white mr-4 rounded-3xl shadow-lg shadow-blue-100 w-64 border border-gray-100"
     >
-      <Image
-        source={{
-          uri: image.startsWith("http") ? image : DEFAULT_IMAGE,
-        }}
-        className="h-36 w-60 rounded-md"
-      />
+      <View className="relative">
+        <Image
+          source={{
+            uri: image && image.startsWith("http") ? image : DEFAULT_IMAGE,
+          }}
+          className="h-40 w-full rounded-t-3xl"
+        />
+        {/* Floating Glassmorphism Badge */}
+        <View className="absolute bottom-3 left-3 bg-white px-3 py-1 rounded-full shadow-sm flex-row items-center space-x-1">
+          <StarIcon color="#77b5fe" size={14} />
+          <Text className="text-xs font-bold text-gray-800">{rating}</Text>
+        </View>
+      </View>
 
-      <View className="px-3 pb-4 space-y-1">
-        <Text className="font-bold text-xl pt-2">{title}</Text>
+      <View className="px-3 pb-4">
+        <Text className="font-bold text-lg pt-2 text-secondary">{title}</Text>
+
         <View className="flex-row items-center space-x-1">
-          <StarIcon color="green" opacity={0.5} size={22} />
-          <Text className="text-sm text-gray-500">
-            <Text className="text-green-500">{rating}</Text> · {minDeliveryTime}
-            -{maxDeliveryTime} min
+          <MapPinIcon color="gray" opacity={0.4} size={22} />
+          <Text className="text-xs text-gray-500 truncate w-[190px]">
+            Nearby • {address}
           </Text>
         </View>
 
-        <View className="flex-row items-center space-x-1">
-          <SparklesIcon color="gold" opacity={0.4} size={22} />
-          <Text className="text-sm text-gray-500">{genre}</Text>
+        <View className="flex-row items-center space-x-1 mt-2">
+          <Text className="text-xs text-gray-500">{minDeliveryTime}-{maxDeliveryTime} mins</Text>
         </View>
       </View>
     </Pressable>

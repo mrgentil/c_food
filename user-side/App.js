@@ -6,15 +6,19 @@ import { store } from "./store.js";
 import { Provider } from "react-redux";
 import { Text, View } from "react-native";
 import { AuthContextProvder } from "./contexts/AuthContext";
+import { LocationProvider } from "./contexts/LocationContext";
+import "./global.css";
 
 export default function App() {
   return (
-    <NavigationContainer>
+    <Provider store={store}>
       <AuthContextProvder>
-        <Provider store={store}>
-          <RootNavigator />
-        </Provider>
+        <LocationProvider>
+          <NavigationContainer>
+            <RootNavigator />
+          </NavigationContainer>
+        </LocationProvider>
       </AuthContextProvder>
-    </NavigationContainer>
+    </Provider>
   );
 }

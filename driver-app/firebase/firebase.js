@@ -1,20 +1,25 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
-// TODO: Replace the following with your app's Firebase project configuration
-// See: https://support.google.com/firebase/answer/7015592
+// ============================================
+// 🔥 CONFIGURATION FIREBASE UNIFIÉE
+// Projet: c-food-15d90 (même que user-side)
+// ============================================
 const firebaseConfig = {
-  apiKey: "AIzaSyBJcwDzUMNJLKzAEyvRwACMYOrUS1u3oR0",
-  authDomain: "food-delivery-e0cba.firebaseapp.com",
-  projectId: "food-delivery-e0cba",
-  storageBucket: "food-delivery-e0cba.appspot.com",
-  messagingSenderId: "595569381333",
-  appId: "1:595569381333:web:6872be5d474cf64473775c",
+  apiKey: "AIzaSyDBNF48YL1FQFZuMlMSoQKceOeTHItBtmw",
+  authDomain: "c-food-15d90.firebaseapp.com",
+  projectId: "c-food-15d90",
+  storageBucket: "c-food-15d90.firebasestorage.app",
+  messagingSenderId: "398344015743",
+  appId: "1:398344015743:web:12b089411326e33d48944a",
 };
 
+// Initialize Firebase app (singleton pattern)
+export const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
-// Initialize Cloud Firestore and get a reference to the service
+// Initialize Cloud Firestore
 export const db = getFirestore(app);
+
+// Initialize Firebase Auth
+export const auth = getAuth(app);

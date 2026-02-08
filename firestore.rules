@@ -1,0 +1,155 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ==========================================
+    // 🔧 HELPER FUNCTIONS
+    // ==========================================
+    
+    // Vérifie si l'utilisateur est connecté
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Récupère le rôle de l'utilisateur connecté
+    function getUserRole() {
+      return get(/databases/$(database)/documents/user/$(request.auth.uid)).data.role;
+    }
+    
+    // Vérifie si l'utilisateur est admin
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() == 'admin';
+    }
+    
+    // Vérifie si l'utilisateur est propriétaire du restaurant
+    function isRestaurantOwner(restaurantId) {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/restaurants/$(restaurantId)).data.ownerId == request.auth.uid;
+    }
+    
+    // ==========================================
+    // 👤 PROFILS UTILISATEURS
+    // ==========================================
+    match /user/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow create: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow update: if isAuthenticated() && (
+        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])) 
+        || isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+    
+    // ==========================================
+    // 🍽️ RESTAURANTS
+    // ==========================================
+    match /restaurants/{restaurantId} {
+      allow read: if true;
+      allow create: if isAdmin();
+      allow update: if isRestaurantOwner(restaurantId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // ==========================================
+    // 🍔 PLATS
+    // ==========================================
+    match /dishes/{dishId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && (
+        isRestaurantOwner(request.resource.data.restaurantId) || isAdmin()
+      );
+      allow update: if isAuthenticated() && (
+        isRestaurantOwner(resource.data.restaurantId) || isAdmin()
+      );
+      allow delete: if isAuthenticated() && (
+        isRestaurantOwner(resource.data.restaurantId) || isAdmin()
+      );
+    }
+    
+    // ==========================================
+    // 🎯 PROMOTIONS (NOUVEAU)
+    // ==========================================
+    match /promotions/{promoId} {
+      // Tout le monde peut voir les promotions (affichage dans l'app mobile)
+      allow read: if true;
+      
+      // Le propriétaire du restaurant peut créer des promotions
+      allow create: if isAuthenticated() && (
+        isRestaurantOwner(request.resource.data.restaurantId) || isAdmin()
+      );
+      
+      // Le propriétaire du restaurant peut modifier ses promotions
+      allow update: if isAuthenticated() && (
+        isRestaurantOwner(resource.data.restaurantId) || isAdmin()
+      );
+      
+      // Le propriétaire du restaurant peut supprimer ses promotions
+      allow delete: if isAuthenticated() && (
+        isRestaurantOwner(resource.data.restaurantId) || isAdmin()
+      );
+    }
+    
+    // ==========================================
+    // 📦 COMMANDES
+    // ==========================================
+    match /orders/{orderId} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.userId ||
+        request.auth.uid == resource.data.driverId ||
+        isRestaurantOwner(resource.data.restaurantId) ||
+        isAdmin()
+      );
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        request.auth.uid == resource.data.userId ||
+        request.auth.uid == resource.data.driverId ||
+        isRestaurantOwner(resource.data.restaurantId) ||
+        getUserRole() == 'driver' ||
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+    
+    // ==========================================
+    // ⭐ NOTATIONS
+    // ==========================================
+    match /ratings/{ratingId} {
+      allow read: if true;
+      allow create: if isAuthenticated() 
+                    && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() 
+                            && resource.data.userId == request.auth.uid;
+    }
+    
+    // ==========================================
+    // 🚗 LIVREURS
+    // ==========================================
+    match /drivers/{driverId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && (request.auth.uid == driverId || isAdmin());
+      allow update: if isAuthenticated() && (request.auth.uid == driverId || isAdmin());
+      allow delete: if isAdmin();
+    }
+    
+    // ==========================================
+    // 📋 PLATS DE COMMANDE
+    // ==========================================
+    match /orderDishes/{orderDishId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // ==========================================
+    // 💰 TRANSACTIONS (AJOUTÉ POUR WALLET)
+    // ==========================================
+    match /transactions/{transactionId} {
+      // L'utilisateur peut lire ses propres transactions
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // L'utilisateur peut créer une transaction SI l'ID correspond au sien
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      
+      // Personne ne peut modifier ou supprimer une transaction (Sûr)
+      allow update, delete: if false; 
+    }
+  }
+}

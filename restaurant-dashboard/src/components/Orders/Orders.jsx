@@ -13,15 +13,12 @@ import OrdersList from "./OrdersList";
 const Orders = () => {
   const [orders, setOrders] = useState([]);
 
-  const restaurantId = "5IdiasERdP0Xq0otooZn";
-
   useEffect(() => {
     const ordersRef = collection(db, "orders");
     const q = query(
       ordersRef,
-      where("restaurantId", "==", restaurantId),
-      orderBy("createdAt", "desc"),
-      where("status", "==", "PENDING")
+      where("paymentStatus", "==", "pending_verification"),
+      orderBy("createdAt", "desc")
     );
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -30,7 +27,9 @@ const Orders = () => {
         item.push({ ...doc.data(), id: doc.id });
       });
       setOrders(item);
-      console.log(orders);
+      console.log("Pending orders:", item);
+    }, (error) => {
+      console.error("Error fetching orders:", error);
     });
 
     return unsubscribe; // Cleanup function to unsubscribe from real-time updates

@@ -17,16 +17,16 @@ const BasketIcon = () => {
     <View className="absolute bottom-4 w-full z-50">
       <TouchableOpacity
         onPress={() => navigation.navigate("Basket")}
-        className="bg-[#4ade80] mx-3 px-3 py-3 rounded-3xl items-center space-x-1 flex-row "
+        className="bg-primary mx-3 px-3 py-3 rounded-3xl items-center space-x-1 flex-row "
       >
-        <Text className="text-white font-extrabold text-lg bg-[#22c55e] py-2 px-4 rounded-full ">
+        <Text className="text-white font-extrabold text-lg bg-secondary py-2 px-4 rounded-full ">
           {items.length}
         </Text>
         <Text className="flex-1 text-white font-extrabold text-lg text-center">
-          View Basket
+          Voir le Panier
         </Text>
         <Text className="text-lg text-white font-extrabold">
-          <Currency quantity={basketTotal} currency="INR" />
+          {new Intl.NumberFormat('fr-CD', { minimumFractionDigits: 0 }).format(basketTotal)} CDF
         </Text>
       </TouchableOpacity>
     </View>

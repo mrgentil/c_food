@@ -1,33 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { View, Text, ScrollView } from "react-native";
 import { ArrowRightIcon } from "react-native-heroicons/outline";
 import RestaurantCard from "./RestaurantCard";
-import { db } from "../firebase";
-import { collection, getDocs } from "firebase/firestore";
 
-
-const FeaturedRow = ({ id, title, description }) => {
-  const [restaurant, setRestaurant] = useState([]);
-  useEffect(() => {
-    const getResData = async () => {
-      const resRef = collection(db, "restaurants");
-
-      await getDocs(resRef).then((querySnapshot) => {
-        let restaurants = [];
-        querySnapshot.forEach((doc) => {
-          restaurants.push({ ...doc.data(), id: doc.id });
-        });
-        setRestaurant(restaurants);
-      });
-    };
-    getResData();
-  }, []);
-
+const FeaturedRow = ({ id, title, description, restaurants = [] }) => {
   return (
     <View>
       <View className="mt-4 flex-row items-center justify-between px-4">
         <Text className="font-bold text-2xl">{title}</Text>
-        <ArrowRightIcon color="#4ade80" />
+        <ArrowRightIcon color="#77b5fe" />
       </View>
 
       <Text className="text-sm text-gray-500 px-4">{description}</Text>
@@ -41,7 +22,7 @@ const FeaturedRow = ({ id, title, description }) => {
         className="pt-4"
       >
         {/* Restaurant Cards */}
-        {restaurant.map((item, index) => {
+        {restaurants.map((item, index) => {
           return (
             <RestaurantCard
               key={index}

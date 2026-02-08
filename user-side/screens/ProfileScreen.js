@@ -1,252 +1,199 @@
-import React, { useState, useEffect } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Image, Alert, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import {
-  View,
-  TextInput,
-  TouchableOpacity,
-  Text,
-  ScrollView,
-  KeyboardAvoidingView,
-  Alert,
-  Button,
-  Pressable,
-} from "react-native";
-import { UserAuth } from "../contexts/AuthContext";
-import { db } from "../firebase";
-import { doc, setDoc } from "firebase/firestore";
-import { useNavigation } from "@react-navigation/native";
-import MapView, { Marker } from "react-native-maps";
-import * as Location from "expo-location";
-import { StatusBar } from "expo-status-bar";
-import { ArrowLeftIcon } from "react-native-heroicons/solid";
-import { selectUser } from "../features/userSlice";
-import { useSelector } from "react-redux";
+  UserIcon,
+  ChevronRightIcon,
+  MapPinIcon,
+  BellIcon,
+  WalletIcon,
+  GiftIcon,
+  TrophyIcon,
+  CurrencyDollarIcon,
+  MegaphoneIcon,
+  SquaresPlusIcon,
+  ArrowRightOnRectangleIcon,
+  GlobeAltIcon,
+  QuestionMarkCircleIcon,
+  PencilIcon
+} from 'react-native-heroicons/outline';
+import { StatusBar } from 'expo-status-bar';
+import * as Animatable from 'react-native-animatable';
+import { UserAuth } from '../contexts/AuthContext';
+import { db } from '../firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 const ProfileScreen = () => {
-  const [locationPermission, setLocationPermission] = useState(null);
-  const [location, setLocation] = useState(null);
   const navigation = useNavigation();
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [address, setAddress] = useState("");
-  const [phoneNumberError, setPhoneNumberError] = useState("");
-  const [userLocation, setUserLocation] = useState({
-    latitude: null,
-    longitude: null,
-  });
-  const dbUser = useSelector(selectUser);
-  const { user } = UserAuth();
+  const { user, signOutUser } = UserAuth();
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // 🔵 COULEUR PRINCIPALE (Bleu Ciel)
+  const PRIMARY_COLOR = "#0EA5E9";
 
   useEffect(() => {
-    getLocationPermission();
-  }, []);
+    if (!user?.uid) return;
 
-  const getLocationPermission = async () => {
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permission to access location was denied");
-      return;
-    }
-
-    setLocationPermission(status);
-    getLocation();
-  };
-
-  const getLocation = async () => {
-    let { coords } = await Location.getCurrentPositionAsync({});
-    setLocation(coords);
-  };
-
-  const handleMapPress = (event) => {
-    const { latitude, longitude } = event.nativeEvent.coordinate;
-    setUserLocation({
-      ...userLocation,
-      latitude,
-      longitude,
+    // Écoute en temps réel des données utilisateur
+    const unsubscribe = onSnapshot(doc(db, 'user', user.uid), (doc) => {
+      setUserData(doc.data());
+      setLoading(false);
     });
-    console.log(userLocation);
-  };
 
-  const handlePhoneNumberChange = (text) => {
-    const formattedPhoneNumber = text.replace(/\D/g, "");
-    const limitedPhoneNumber = formattedPhoneNumber.slice(0, 10);
-    setPhoneNumber(limitedPhoneNumber);
+    return () => unsubscribe();
+  }, [user]);
 
-    if (limitedPhoneNumber.length !== 10) {
-      setPhoneNumberError("Phone number must be 10 digits.");
-    } else {
-      setPhoneNumberError("");
-    }
-  };
-
-  const onSave = async () => {
-    if (
-      !firstName ||
-      !lastName ||
-      !phoneNumber ||
-      !address ||
-      !location ||
-      phoneNumberError
-    ) {
-      Alert.alert("Please fill all fields to update details.");
-      return;
-    }
-
-    const dataToUpdate = {};
-
-    if (firstName) {
-      dataToUpdate.firstName = firstName;
-    }
-
-    if (lastName) {
-      dataToUpdate.lastName = lastName;
-    }
-
-    if (phoneNumber) {
-      dataToUpdate.phoneNumber = phoneNumber;
-    }
-
-    if (address) {
-      dataToUpdate.address = address;
-    }
-
-    if (userLocation.latitude && userLocation.longitude == null) {
-      dataToUpdate.latitude = location.latitude;
-      dataToUpdate.longitude = location.longitude;
-    } else {
-      dataToUpdate.latitude = userLocation.latitude;
-      dataToUpdate.longitude = userLocation.longitude;
-    }
-
-    await setDoc(doc(db, "user", user.uid), dataToUpdate);
-    Alert.alert("Success!", "Your profile has been updated successfully.", [
-      {
-        text: "OK",
-        onPress: () => navigation.goBack(),
-        style: "cancel",
-      },
+  const handleLogout = () => {
+    Alert.alert('Déconnexion', 'Voulez-vous vraiment vous déconnecter ?', [
+      { text: 'Annuler', style: 'cancel' },
+      { text: 'Déconnexion', style: 'destructive', onPress: () => signOutUser() }
     ]);
   };
 
+  const menuItems = [
+    {
+      id: 'notifications',
+      title: 'Notifications',
+      icon: <BellIcon size={24} color="#F59E0B" />, // Jaune ambre
+      onPress: () => Alert.alert('Bientôt', 'Centre de notifications à venir !'),
+      bgColor: 'bg-amber-50'
+    },
+    {
+      id: 'address',
+      title: 'Adresse de livraison',
+      icon: <MapPinIcon size={24} color={PRIMARY_COLOR} />, // Bleu ciel
+      onPress: () => navigation.navigate("UserDetails"), // Redirige vers l'édition du profil/adresse
+      bgColor: 'bg-sky-50'
+    },
+    {
+      id: 'wallet',
+      title: 'Mon Portefeuille',
+      icon: <WalletIcon size={24} color="#10B981" />,
+      onPress: () => navigation.navigate('Wallet'),
+      bgColor: 'bg-emerald-50'
+    },
+    {
+      id: 'gift',
+      title: 'Cartes Cadeaux',
+      icon: <GiftIcon size={24} color="#EC4899" />,
+      onPress: () => navigation.navigate('GiftCard'),
+      bgColor: 'bg-pink-50'
+    },
+    {
+      id: 'cashback',
+      title: 'Cashback',
+      icon: <TrophyIcon size={24} color="#8B5CF6" />,
+      onPress: () => navigation.navigate('Fidelity'), // Consolidated Cashback & Fidelity
+      bgColor: 'bg-violet-50'
+    },
+    {
+      id: 'fidelity',
+      title: 'Points de Fidélité',
+      icon: <CurrencyDollarIcon size={24} color="#F59E0B" />,
+      onPress: () => navigation.navigate('Fidelity'),
+      bgColor: 'bg-yellow-50'
+    },
+    {
+      id: 'annonces',
+      title: 'Annonces',
+      icon: <MegaphoneIcon size={24} color="#EF4444" />,
+      onPress: () => navigation.navigate('Announcements'),
+      bgColor: 'bg-red-50'
+    },
+    {
+      id: 'plus',
+      title: 'Plus',
+      icon: <SquaresPlusIcon size={24} color="#6B7280" />,
+      onPress: () => Alert.alert('Plus', 'Autres paramètres à venir.'),
+      bgColor: 'bg-gray-100'
+    },
+  ];
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-gray-50">
+        <ActivityIndicator size="large" color={PRIMARY_COLOR} />
+      </View>
+    );
+  }
+
   return (
-    <SafeAreaView className="bg-white flex-1">
-      <StatusBar style="auto" />
+    <View className="flex-1 bg-gray-50">
+      <StatusBar style="light" />
 
-      <View className="p-5 bg-white shadow-xs">
-        <TouchableOpacity className="absolute top-4 left-4 bg-white p-2 rounded-full">
-          <ArrowLeftIcon size={30} color="#00CCBB" />
-        </TouchableOpacity>
+      {/* 🟦 HEADER BLEU CIEL (Style Propre) */}
+      <View className="bg-[#0EA5E9] pt-14 pb-8 px-5 rounded-b-[30px] shadow-lg">
+        <View className="flex-row items-center space-x-4">
+          {/* Avatar avec cercle blanc */}
+          <View className="bg-white p-1 rounded-full shadow-md">
+            <Image
+              source={{ uri: userData?.photoURL || "https://cdn-icons-png.flaticon.com/512/4140/4140048.png" }}
+              className="h-16 w-16 rounded-full bg-gray-200"
+            />
+          </View>
 
-        <View>
-          <Text className="text-xl font-bold text-center">
-            Update your details
-          </Text>
+          {/* Infos Utilisateur */}
+          <View className="flex-1">
+            <Text className="text-white text-xl font-bold truncate">
+              {userData?.firstName || "Utilisateur"} {userData?.lastName || ""}
+            </Text>
+            <Text className="text-blue-100 text-sm mb-2 opacity-90">
+              {user?.email}
+            </Text>
+
+            {/* Bouton Modifier (Pill shape blanc) */}
+            <TouchableOpacity
+              onPress={() => navigation.navigate("UserDetails")}
+              className="bg-white/20 self-start px-3 py-1 rounded-full border border-white/30 flex-row items-center"
+            >
+              <Text className="text-white text-xs font-semibold mr-1">Modifier profil</Text>
+              <PencilIcon size={10} color="white" />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
-      <KeyboardAvoidingView
-        className="flex-1 px-4 bg-white"
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View className="flex items-left justify-center w-3/6 p-4  mb-4 bg-white  rounded-2xl shadow border-gray-200 mx-auto border">
-            <Text className="text-base font-semibold text-gray-700">
-              {dbUser.firstName} {dbUser.lastName}
-              {"\n"}
-              {dbUser.phoneNumber}
-              {"\n"}
-              {dbUser.address}
-            </Text>
-          </View>
-          <View className="mb-4">
-            <Text className="text-xl font-bold mb-2 text-black">
-              First Name
-            </Text>
-            <TextInput
-              className="bg-white border border-gray-200 text-base h-12 px-4 rounded-xl text-gray-700  focus:ring focus:ring-[#00CCBB] focus:border-[#00CCBB]"
-              value={firstName}
-              onChangeText={setFirstName}
-            />
-          </View>
+      <ScrollView className="flex-1 px-4 pt-6" showsVerticalScrollIndicator={false}>
 
-          <View className="mb-4">
-            <Text className="text-xl font-bold mb-2 text-black">Last Name</Text>
-            <TextInput
-              className="bg-white border border-gray-200 text-base h-12 px-4 rounded-xl text-gray-700  focus:ring focus:ring-[#00CCBB] focus:border-[#00CCBB]"
-              value={lastName}
-              onChangeText={setLastName}
-            />
-          </View>
+        {/* Liste des Menus */}
+        <View className="bg-white rounded-3xl p-2 shadow-sm border border-gray-100 mb-20">
+          {menuItems.map((item, index) => (
+            <TouchableOpacity
+              key={item.id}
+              onPress={item.onPress}
+              className={`flex-row items-center justify-between p-4 ${index !== menuItems.length - 1 ? 'border-b border-gray-50' : ''} active:bg-gray-50 rounded-xl`}
+            >
+              <View className="flex-row items-center space-x-4">
+                <View className={`p-2 rounded-xl ${item.bgColor}`}>
+                  {item.icon}
+                </View>
+                <Text className="text-gray-700 font-semibold text-[15px]">{item.title}</Text>
+              </View>
+              <ChevronRightIcon size={18} color="#D1D5DB" />
+            </TouchableOpacity>
+          ))}
 
-          <View className="mb-4">
-            <Text className="text-xl font-bold mb-2 text-black">
-              Phone Number
-            </Text>
-            <TextInput
-              className="bg-white border border-gray-200 text-base h-12 px-4 rounded-xl text-gray-700  focus:ring focus:ring-[#00CCBB] focus:border-[#00CCBB]"
-              value={phoneNumber}
-              onChangeText={handlePhoneNumberChange}
-              keyboardType="phone-pad"
-            />
-            {phoneNumberError ? (
-              <Text style={{ color: "red" }}>{phoneNumberError}</Text>
-            ) : null}
-          </View>
+          {/* Séparateur Déconnexion */}
+          <View className="h-4 bg-gray-50 w-full my-2" />
 
-          <View className="mb-4">
-            <Text className="text-xl font-bold mb-2 text-black">
-              Street Address
-            </Text>
-            <TextInput
-              className="bg-white border border-gray-200 text-base h-12 px-4 rounded-xl text-gray-700  focus:ring focus:ring-[#00CCBB] focus:border-[#00CCBB]"
-              value={address}
-              onChangeText={setAddress}
-            />
-          </View>
-
-          <View className="mt-4 mb-6 rounded-2xl overflow-hidden border border-gray-300">
-            {location ? (
-              <MapView
-                className="w-full h-40"
-                provider="google"
-                showsUserLocation
-                initialRegion={{
-                  latitude: location.latitude || 0,
-                  longitude: location.longitude || 0,
-                  latitudeDelta: 0.005,
-                  longitudeDelta: 0.005,
-                }}
-              >
-                <Marker
-                  coordinate={{
-                    latitude: location.latitude || 0,
-                    longitude: location.longitude || 0,
-                  }}
-                  draggable={true}
-                  onDragStart={(event) => handleMapPress(event)}
-                  onDragEnd={(event) => handleMapPress(event)}
-                />
-              </MapView>
-            ) : (
-              <Button
-                title="Get Current Location"
-                onPress={getLocationPermission}
-              />
-            )}
-          </View>
-
+          {/* Bouton Déconnexion */}
           <TouchableOpacity
-            onPress={onSave}
-            className="mx-auto w-10/12 my-8 items-center p-2 rounded-2xl  hover:bg-green-200 active:bg-green-400 duration-150 bg-green-300 border-l-4 border-b-4 border-green-600"
+            onPress={handleLogout}
+            className="flex-row items-center justify-between p-4 active:bg-red-50 rounded-xl"
           >
-            <Text className="text-center text-gray-700 font-extrabold text-xl">
-              Update
-            </Text>
+            <View className="flex-row items-center space-x-4">
+              <View className="p-2 rounded-xl bg-red-50">
+                <ArrowRightOnRectangleIcon size={24} color="#EF4444" />
+              </View>
+              <Text className="text-red-500 font-bold text-[15px]">Déconnexion</Text>
+            </View>
           </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+        </View>
+      </ScrollView>
+    </View>
   );
 };
 
