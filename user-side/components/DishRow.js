@@ -16,7 +16,7 @@ const DishRow = ({ id, name, description, price, image, restaurantId }) => {
 
   const addItems = () => {
     dispatch(
-      addToBasket({ id, restaurantId, name, description, price, image })
+      addToBasket({ id, restaurantId, name, description, price: Number(price), image })
     );
   };
 
