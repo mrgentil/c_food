@@ -32,10 +32,10 @@ const ProtectedRoute = ({ children, allowedRoles = [ROLES.ADMIN, ROLES.RESTAURAN
     // Afficher un loader pendant la vérification
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-100">
+            <div className="min-h-screen flex items-center justify-center bg-[#F4F7FE]">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-orange-500 mx-auto"></div>
-                    <p className="mt-4 text-gray-600 font-medium">Chargement...</p>
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#4318FF] mx-auto"></div>
+                    <p className="mt-4 text-[#A3AED0] font-medium">Chargement...</p>
                 </div>
             </div>
         );

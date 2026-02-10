@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 /**
  * 🔐 PAGE DE CONNEXION
- * Interface de login pour Admin et Restaurant
+ * Interface de login - Style cohérent avec le Dashboard
  */
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -20,7 +20,6 @@ export default function LoginPage() {
         setError('');
         setIsLoading(true);
 
-        // Validation
         if (!email || !password) {
             setError('Veuillez remplir tous les champs');
             setIsLoading(false);
@@ -30,7 +29,6 @@ export default function LoginPage() {
         const result = await signIn(email, password);
 
         if (result.success) {
-            // Rediriger selon le rôle
             if (result.profile.role === 'admin') {
                 router.push('/admin');
             } else {
@@ -44,105 +42,136 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-orange-400 via-red-400 to-pink-500 flex items-center justify-center p-4">
-            {/* Background decoration */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
-            </div>
+        <div className="min-h-screen flex font-dm-sans">
+            {/* Left Side - Same style as Dashboard Sidebar */}
+            <div className="hidden lg:flex lg:w-[400px] bg-[#111C44] text-white flex-col justify-between p-8">
+                {/* Logo */}
+                <div>
+                    <h1 className="text-2xl font-bold tracking-wider uppercase">
+                        C-FOOD <span className="text-blue-400">DASHBOARD</span>
+                    </h1>
+                </div>
 
-            {/* Login Card */}
-            <div className="relative w-full max-w-md">
-                <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-10">
-                    {/* Logo */}
-                    <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl shadow-lg mb-4">
-                            <span className="text-3xl">🍔</span>
-                        </div>
-                        <h1 className="text-2xl font-bold text-gray-800">C-Food Dashboard</h1>
-                        <p className="text-gray-500 mt-1">Connectez-vous pour accéder à votre espace</p>
+                {/* Center Content */}
+                <div className="flex-1 flex flex-col justify-center">
+                    <div className="mb-8">
+                        <h2 className="text-3xl font-bold mb-4">Bienvenue !</h2>
+                        <p className="text-gray-400 text-lg">
+                            Gérez vos restaurants, commandes et menus depuis votre tableau de bord centralisé.
+                        </p>
                     </div>
 
-                    {/* Error message */}
-                    {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-                            <p className="text-red-600 text-sm font-medium flex items-center gap-2">
-                                <span>⚠️</span>
-                                {error}
-                            </p>
+                    {/* Features */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-[#1B254B] rounded-lg flex items-center justify-center">
+                                <span className="text-lg">📊</span>
+                            </div>
+                            <span className="text-gray-300">Statistiques en temps réel</span>
                         </div>
-                    )}
-
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        {/* Email */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="votre@email.com"
-                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                                disabled={isLoading}
-                            />
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-[#1B254B] rounded-lg flex items-center justify-center">
+                                <span className="text-lg">🍽️</span>
+                            </div>
+                            <span className="text-gray-300">Gestion des menus</span>
                         </div>
-
-                        {/* Password */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Mot de passe
-                            </label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••••"
-                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                                disabled={isLoading}
-                            />
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-[#1B254B] rounded-lg flex items-center justify-center">
+                                <span className="text-lg">📦</span>
+                            </div>
+                            <span className="text-gray-300">Suivi des commandes</span>
                         </div>
-
-                        {/* Submit button */}
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className={`w-full py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''
-                                }`}
-                        >
-                            {isLoading ? (
-                                <span className="flex items-center justify-center gap-2">
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                    Connexion...
-                                </span>
-                            ) : (
-                                'Se connecter'
-                            )}
-                        </button>
-                    </form>
-
-                    {/* Footer */}
-                    <div className="mt-8 text-center">
-                        <p className="text-sm text-gray-500">
-                            Accès réservé aux administrateurs et restaurants
-                        </p>
                     </div>
                 </div>
 
-                {/* Info cards */}
-                <div className="mt-6 grid grid-cols-2 gap-4">
-                    <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center text-white">
-                        <span className="text-2xl">👑</span>
-                        <p className="text-sm mt-1 font-medium">Admin</p>
-                        <p className="text-xs opacity-80">Accès complet</p>
+                {/* Footer */}
+                <div className="text-gray-500 text-sm">
+                    © {new Date().getFullYear()} C-Food. Created by <a href="https://wa.me/243812380589" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 transition-colors">Owr Digi</a>
+                </div>
+            </div>
+
+            {/* Right Side - Login Form */}
+            <div className="flex-1 bg-[#F4F7FE] flex items-center justify-center p-8">
+                <div className="w-full max-w-md">
+                    {/* Mobile Logo */}
+                    <div className="lg:hidden text-center mb-8">
+                        <h1 className="text-2xl font-bold text-[#2B3674]">
+                            C-FOOD <span className="text-[#4318FF]">DASHBOARD</span>
+                        </h1>
                     </div>
-                    <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center text-white">
-                        <span className="text-2xl">🍽️</span>
-                        <p className="text-sm mt-1 font-medium">Restaurant</p>
-                        <p className="text-xs opacity-80">Mon espace</p>
+
+                    {/* Login Card */}
+                    <div className="bg-white rounded-[20px] shadow-[0px_18px_40px_rgba(112,144,176,0.12)] p-8">
+                        <div className="text-center mb-8">
+                            <h2 className="text-2xl font-bold text-[#2B3674]">Connexion</h2>
+                            <p className="text-[#A3AED0] mt-2">Accédez à votre espace de gestion</p>
+                        </div>
+
+                        {/* Error message */}
+                        {error && (
+                            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                                <p className="text-red-600 text-sm font-medium flex items-center gap-2">
+                                    <span>⚠️</span>
+                                    {error}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Form */}
+                        <form onSubmit={handleSubmit} className="space-y-5">
+                            <div>
+                                <label className="block text-sm font-bold text-[#2B3674] mb-2 uppercase tracking-wider">
+                                    Email
+                                </label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="votre@email.com"
+                                    className="w-full px-4 py-3.5 bg-[#F4F7FE] border border-[#E9EDF7] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4318FF] focus:border-transparent transition-all text-[#2B3674] placeholder:text-[#A3AED0]"
+                                    disabled={isLoading}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-[#2B3674] mb-2 uppercase tracking-wider">
+                                    Mot de passe
+                                </label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    className="w-full px-4 py-3.5 bg-[#F4F7FE] border border-[#E9EDF7] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4318FF] focus:border-transparent transition-all text-[#2B3674] placeholder:text-[#A3AED0]"
+                                    disabled={isLoading}
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className={`w-full py-4 bg-[#4318FF] text-white font-bold rounded-xl shadow-lg shadow-[#4318FF]/30 hover:shadow-xl hover:shadow-[#4318FF]/40 transition-all ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            >
+                                {isLoading ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        Connexion...
+                                    </span>
+                                ) : (
+                                    'Se connecter'
+                                )}
+                            </button>
+                        </form>
                     </div>
+
+                    <p className="text-center text-[#A3AED0] text-sm mt-6">
+                        Accès réservé aux administrateurs et restaurants
+                    </p>
+
+                    {/* Mobile Footer */}
+                    <p className="lg:hidden text-center text-[#A3AED0] text-xs mt-4">
+                        © {new Date().getFullYear()} C-Food. Created by <a href="https://wa.me/243812380589" target="_blank" rel="noopener noreferrer" className="text-[#4318FF] hover:underline">Owr Digi</a>
+                    </p>
                 </div>
             </div>
         </div>

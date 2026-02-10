@@ -1,7 +1,6 @@
 import { View, Text } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import SignIn from "../screens/SignIn";
-import SignUp from "../screens/SignUp";
+import AuthScreen from "../screens/AuthScreen";
 import UserDetails from "../screens/UserDetails";
 import OnboardingScreen from "../screens/OnboardingScreen";
 import LocationPermissionScreen from "../screens/LocationPermissionScreen";
@@ -38,13 +37,8 @@ const AuthStack = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="SignIn"
-          component={SignIn}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="SignUp"
-          component={SignUp}
+          name="Auth"
+          component={AuthScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen

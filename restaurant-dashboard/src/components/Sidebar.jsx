@@ -20,6 +20,7 @@ import AdminUsers from "./Admin/AdminUsers";
 import AdminOrders from "./Admin/AdminOrders";
 import AdminReviews from "./Admin/AdminReviews";
 import AdminPromotions from "./Admin/AdminPromotions";
+import AdminDrivers from "./Admin/AdminDrivers";
 
 const Sidebar = () => {
   const [active, setActive] = useState(0);
@@ -33,6 +34,7 @@ const Sidebar = () => {
     { name: "Dashboard", category: "PRINCIPAL", icon: "grid_view", component: <AdminDashboard /> },
     { name: "Restaurants", category: "GESTION", icon: "restaurant", component: <AdminRestaurants /> },
     { name: "Utilisateurs", category: "GESTION", icon: "group", component: <AdminUsers /> },
+    { name: "Livreurs", category: "GESTION", icon: "delivery_dining", component: <AdminDrivers /> },
     { name: "Commandes", category: "GESTION", icon: "shopping_cart", component: <AdminOrders /> },
     { name: "Promotions", category: "VUE", icon: "local_offer", component: <AdminPromotions /> },
     { name: "Avis Clients", category: "MODÉRATION", icon: "reviews", component: <AdminReviews /> },

@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { ClockIcon, CheckCircleIcon, TruckIcon, XCircleIcon, ShoppingBagIcon, ChevronRightIcon } from 'react-native-heroicons/outline';
 import { db } from '../firebase';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, getDocs, limit } from 'firebase/firestore';
 import { UserAuth } from '../contexts/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 
@@ -95,6 +95,75 @@ const OrdersScreen = () => {
         );
     }
 
+    const createTestOrder = async () => {
+        setLoading(true);
+        try {
+            // 1. Récupérer TOUS les vrais restaurants (limite 20)
+            const restosRef = collection(db, "restaurants");
+            const snapshot = await getDocs(query(restosRef, limit(20)));
+
+            if (snapshot.empty) {
+                alert("Aucun restaurant trouvé !");
+                setLoading(false);
+                return;
+            }
+
+            const restos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const PLATS = ["Poulet Mayo", "Riz Cantonais", "Fufu Sauce Graine", "Makayabu", "Chawarma Poulet", "Pizza Marguerite", "Burger Spécial", "Brochettes de Boeuf", "Liboke de Poisson", "Salade Composée"];
+
+            // 2. Générer 10 commandes
+            let count = 0;
+            for (let i = 0; i < 10; i++) {
+                const randomResto = restos[Math.floor(Math.random() * restos.length)];
+                const randomPlat = PLATS[Math.floor(Math.random() * PLATS.length)];
+                const price = (Math.floor(Math.random() * 20) + 10) * 1000; // Prix entre 10000 et 30000 FC
+
+                await addDoc(collection(db, "orders"), {
+                    restaurantName: randomResto.name || "Restaurant Inconnu",
+                    restaurantId: randomResto.id,
+                    restaurantAddress: randomResto.address || "Kinshasa, RDC",
+                    restaurantImage: randomResto.image || "https://links.papareact.com/wru",
+                    restaurantLatitude: randomResto.lat || -4.322447,
+                    restaurantLongitude: randomResto.lng || 15.307045,
+
+                    userId: user.uid,
+                    userFirstName: "Moi", // Nom du user connecté
+                    userLastName: "Client",
+                    userLatitude: -4.3316 + (Math.random() * 0.01),
+                    userLongitude: 15.3130 + (Math.random() * 0.01),
+                    userAddress: "Avenue Kasa-Vubu, Kinshasa",
+
+                    city: "Kinshasa",
+                    district: "Gombe",
+
+                    items: [{
+                        id: `item-${Date.now()}-${i}`,
+                        name: randomPlat,
+                        price: price,
+                        quantity: 1,
+                        image: randomResto.image || "https://links.papareact.com/wru"
+                    }],
+
+                    total: price + 2000,
+                    deliveryFee: 2000,
+                    status: "pending",
+                    paymentMethod: "cash",
+                    paymentStatus: "pending",
+                    driverId: null,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                });
+                count++;
+            }
+            alert(`✅ ${count} Commandes réalistes générées !`);
+            onRefresh();
+        } catch (e) {
+            alert("Erreur: " + e.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <SafeAreaView className="flex-1 bg-gray-50">
             <StatusBar style="dark" />
@@ -111,10 +180,10 @@ const OrdersScreen = () => {
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#0EA5E9']} />}
             >
                 {orders.length === 0 ? (
-                    <View className="flex-1 justify-center items-center py-20 opacity-50">
+                    <View className="flex-1 justify-center items-center py-20">
                         <ShoppingBagIcon size={80} color="#D1D5DB" />
                         <Text className="text-gray-500 text-lg mt-4 font-bold">Le calme plat...</Text>
-                        <Text className="text-gray-400 text-sm">Commandez quelque chose de bon !</Text>
+                        <Text className="text-gray-400 text-sm mb-6">Commandez quelque chose de bon !</Text>
                     </View>
                 ) : (
                     orders.map((order) => {
@@ -142,8 +211,8 @@ const OrdersScreen = () => {
 
                                     {/* Status Pill */}
                                     <View className={`px-3 py-1 rounded-full flex-row items-center space-x-1 ${statusInfo.color.includes('green')
-                                            ? statusInfo.color.replace('green', 'blue')
-                                            : statusInfo.color
+                                        ? statusInfo.color.replace('green', 'blue')
+                                        : statusInfo.color
                                         }`}>
                                         <StatusIcon size={12} color="currentColor" style={{ opacity: 0.7 }} />
                                         <Text className={`text-xs font-bold ${statusInfo.color.split(' ')[1]}`}>

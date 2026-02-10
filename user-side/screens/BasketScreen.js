@@ -23,6 +23,9 @@ import {
   addDoc,
   setDoc,
   serverTimestamp,
+  query,
+  orderBy,
+  onSnapshot
 } from "firebase/firestore";
 import PaymentModal from "../components/PaymentModal";
 import AnimatedButton from "../components/AnimatedButton";
@@ -46,6 +49,8 @@ const BasketScreen = () => {
   const [deliveryCoordinates, setDeliveryCoordinates] = useState(null);
   const [deliveryInstructions, setDeliveryInstructions] = useState("");
   const [showAddressModal, setShowAddressModal] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [showAddressList, setShowAddressList] = useState(true); // Toggle between list and search
 
   // Initialize delivery address from user profile
   useEffect(() => {
@@ -56,6 +61,16 @@ const BasketScreen = () => {
       }
     }
   }, [dbUser]);
+
+  // Fetch Saved Addresses
+  useEffect(() => {
+    if (!user?.uid) return;
+    const q = query(collection(db, 'user', user.uid, 'addresses'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setSavedAddresses(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+    return () => unsubscribe();
+  }, [user]);
 
   const dispatch = useDispatch();
   const { user } = UserAuth();
@@ -127,6 +142,14 @@ const BasketScreen = () => {
         userLatitude: deliveryCoordinates?.latitude || dbUser?.latitude || 0,
         userLongitude: deliveryCoordinates?.longitude || dbUser?.longitude || 0,
         userAddress: deliveryAddress || dbUser?.address || "Non défini",
+
+        // 🌍 NOUVEAU: Champs pour le filtrage par ville (RDC)
+        // On essaie d'extraire la ville de l'adresse ou du profil, sinon par défaut "Kinshasa"
+        city: (deliveryAddress || dbUser?.address || "").toLowerCase().includes("lubumbashi") ? "Lubumbashi"
+          : (deliveryAddress || dbUser?.address || "").toLowerCase().includes("goma") ? "Goma"
+            : "Kinshasa",
+        district: (deliveryAddress || dbUser?.address || "").split(",")[0] || "Inconnu", // Tentative d'extraction du quartier/commune
+
         deliveryInstructions: deliveryInstructions.trim(), // Add instructions
 
         userPhoneNumber: dbUser?.phoneNumber || "",
@@ -447,19 +470,70 @@ const BasketScreen = () => {
             </View>
 
             <View className="p-4 flex-1">
-              <Text className="text-gray-500 mb-4">Recherchez une nouvelle adresse pour cette livraison uniquement.</Text>
-              <AddressSearchAutocomplete
-                onSelectAddress={(data) => {
-                  setDeliveryAddress(data.address);
-                  setDeliveryCoordinates({
-                    latitude: data.latitude,
-                    longitude: data.longitude
-                  });
-                  setShowAddressModal(false);
-                }}
-              />
+              <Text className="text-gray-500 mb-4">
+                {showAddressList ? "Sélectionnez une adresse enregistrée ou recherchez-en une nouvelle." : "Recherchez une nouvelle adresse."}
+              </Text>
 
-              {/* Option to revert to GPS ?? Maybe not needed for MVP */}
+              {/* Toggle Search/List */}
+              <View className="flex-row mb-4 bg-gray-100 p-1 rounded-lg">
+                <TouchableOpacity
+                  onPress={() => setShowAddressList(true)}
+                  className={`flex-1 py-1 rounded-md items-center ${showAddressList ? 'bg-white shadow-sm' : ''}`}
+                >
+                  <Text className={`font-bold ${showAddressList ? 'text-gray-900' : 'text-gray-500'}`}>Mes Adresses</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setShowAddressList(false)}
+                  className={`flex-1 py-1 rounded-md items-center ${!showAddressList ? 'bg-white shadow-sm' : ''}`}
+                >
+                  <Text className={`font-bold ${!showAddressList ? 'text-gray-900' : 'text-gray-500'}`}>Nouvelle recherche</Text>
+                </TouchableOpacity>
+              </View>
+
+              {showAddressList ? (
+                <ScrollView className="flex-1">
+                  {savedAddresses.length > 0 ? (
+                    savedAddresses.map((addr) => (
+                      <TouchableOpacity
+                        key={addr.id}
+                        onPress={() => {
+                          setDeliveryAddress(addr.address);
+                          setDeliveryCoordinates({ latitude: addr.latitude, longitude: addr.longitude });
+                          if (addr.instructions) setDeliveryInstructions(addr.instructions);
+                          setShowAddressModal(false);
+                        }}
+                        className="bg-white p-3 mb-2 rounded-xl border border-gray-100 flex-row items-center active:bg-sky-50 active:border-sky-200"
+                      >
+                        <View className="bg-gray-50 p-2 rounded-full mr-3">
+                          <MapPinIcon size={20} color="#0EA5E9" />
+                        </View>
+                        <View>
+                          <Text className="font-bold text-gray-800">{addr.name}</Text>
+                          <Text className="text-gray-500 text-xs w-64" numberOfLines={1}>{addr.address}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))
+                  ) : (
+                    <View className="items-center py-10">
+                      <Text className="text-gray-400 text-center">Aucune adresse enregistrée.</Text>
+                      <TouchableOpacity onPress={() => setShowAddressList(false)} className="mt-2">
+                        <Text className="text-[#0EA5E9] font-bold">Rechercher une adresse</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </ScrollView>
+              ) : (
+                <AddressSearchAutocomplete
+                  onSelectAddress={(data) => {
+                    setDeliveryAddress(data.address);
+                    setDeliveryCoordinates({
+                      latitude: data.latitude,
+                      longitude: data.longitude
+                    });
+                    setShowAddressModal(false);
+                  }}
+                />
+              )}
             </View>
           </SafeAreaView>
         </Modal>

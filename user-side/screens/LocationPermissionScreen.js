@@ -93,13 +93,13 @@ const LocationPermissionScreen = ({ navigation }) => {
                 }
             }
 
-            // Naviguer vers SignIn
-            navigation.replace('SignIn');
+            // Naviguer vers Auth
+            navigation.replace('Auth');
         } catch (error) {
             console.error('Error requesting location:', error);
             // Continuer quand même
             await AsyncStorage.setItem('hasSeenLocationPermission', 'true');
-            navigation.replace('SignIn');
+            navigation.replace('Auth');
         } finally {
             setIsFetching(false);
         }
@@ -109,7 +109,7 @@ const LocationPermissionScreen = ({ navigation }) => {
         // Marquer comme vu et refusé
         await AsyncStorage.setItem('hasSeenLocationPermission', 'true');
         await AsyncStorage.setItem('locationPermissionGranted', 'false');
-        navigation.replace('SignIn');
+        navigation.replace('Auth');
     };
 
     return (

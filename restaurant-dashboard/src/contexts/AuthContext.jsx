@@ -81,7 +81,8 @@ export const AuthProvider = ({ children }) => {
             } else {
                 // Déconnexion si rôle non autorisé
                 await firebaseSignOut(auth);
-                throw new Error('Accès non autorisé. Seuls les administrateurs et propriétaires de restaurant peuvent se connecter.');
+                const currentRole = profile?.role || 'aucun rôle défini';
+                throw new Error(`Accès non autorisé. Votre rôle actuel est "${currentRole}". Seuls les rôles "admin" ou "restaurant" sont autorisés.`);
             }
         } catch (err) {
             console.error('Erreur connexion:', err);

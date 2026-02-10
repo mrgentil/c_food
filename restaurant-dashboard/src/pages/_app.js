@@ -2,6 +2,7 @@ import '@/styles/globals.css'
 import { useRouter } from 'next/router'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { RestaurantProvider } from '@/contexts/RestaurantContext'
+import { NotificationProvider } from '@/contexts/NotificationContext'
 
 /**
  * 🚀 APP WRAPPER
@@ -23,12 +24,14 @@ export default function App({ Component, pageProps }) {
     )
   }
 
-  // Pour les pages protégées, inclure RestaurantProvider
+  // Pour les pages protégées/connectées
   return (
     <AuthProvider>
-      <RestaurantProvider>
-        <Component {...pageProps} />
-      </RestaurantProvider>
+      <NotificationProvider>
+        <RestaurantProvider>
+          <Component {...pageProps} />
+        </RestaurantProvider>
+      </NotificationProvider>
     </AuthProvider>
   )
 }

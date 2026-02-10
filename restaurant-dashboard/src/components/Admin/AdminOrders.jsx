@@ -1,17 +1,21 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy, doc, updateDoc, serverTimestamp, getDoc, increment } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, doc, updateDoc, serverTimestamp, where, increment } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 
 const AdminOrders = () => {
     const [orders, setOrders] = useState([]);
+    const [drivers, setDrivers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [showDriverModal, setShowDriverModal] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState(null);
     const itemsPerPage = 8;
 
     useEffect(() => {
         fetchOrders();
+        fetchDrivers();
     }, []);
 
     const fetchOrders = async () => {
@@ -21,6 +25,16 @@ const AdminOrders = () => {
             const snap = await getDocs(q);
             setOrders(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         } catch (error) { console.error(error); } finally { setLoading(false); }
+    };
+
+    // 🚗 Récupérer les livreurs disponibles
+    const fetchDrivers = async () => {
+        try {
+            const usersRef = collection(db, 'user');
+            const q = query(usersRef, where('role', '==', 'driver'));
+            const snap = await getDocs(q);
+            setDrivers(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        } catch (error) { console.error('Erreur chargement livreurs:', error); }
     };
 
     const updateOrderStatus = async (orderId, newStatus) => {
@@ -42,6 +56,36 @@ const AdminOrders = () => {
 
             setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
         } catch (error) { console.error(error); }
+    };
+
+    // 🚗 Assigner un livreur à une commande
+    const assignDriver = async (orderId, driverId) => {
+        try {
+            const orderRef = doc(db, 'orders', orderId);
+            const driver = drivers.find(d => d.id === driverId);
+
+            await updateDoc(orderRef, {
+                driverId: driverId,
+                driverName: driver ? `${driver.firstName || ''} ${driver.lastName || ''}`.trim() : '',
+                driverPhone: driver?.phoneNumber || '',
+                updatedAt: serverTimestamp()
+            });
+
+            setOrders(prev => prev.map(o => o.id === orderId ? {
+                ...o,
+                driverId,
+                driverName: driver ? `${driver.firstName || ''} ${driver.lastName || ''}`.trim() : ''
+            } : o));
+
+            setShowDriverModal(false);
+            setSelectedOrder(null);
+        } catch (error) { console.error('Erreur assignation livreur:', error); }
+    };
+
+    // Ouvrir le modal d'assignation
+    const openDriverModal = (order) => {
+        setSelectedOrder(order);
+        setShowDriverModal(true);
     };
 
     const formatCurrency = (amount) => new Intl.NumberFormat('fr-CD').format(amount) + ' FC';
@@ -78,17 +122,39 @@ const AdminOrders = () => {
         <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <h2 className="text-2xl font-bold text-black dark:text-white">Commandes</h2>
+                <div className="flex items-center gap-3">
+                    <span className="text-sm text-gray-500">🚗 {drivers.length} livreur(s)</span>
+                    {/* 🆕 Bouton Tout Accepter */}
+                    <button
+                        onClick={async () => {
+                            const pendingOrders = orders.filter(o => o.status === 'pending');
+                            if (pendingOrders.length === 0) {
+                                alert('Aucune commande en attente !');
+                                return;
+                            }
+                            if (!confirm(`Accepter ${pendingOrders.length} commande(s) en attente ?`)) return;
+
+                            for (const order of pendingOrders) {
+                                await updateOrderStatus(order.id, 'preparing');
+                            }
+                            alert(`✅ ${pendingOrders.length} commandes passées en cuisine !`);
+                        }}
+                        className="inline-flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-600 transition-colors"
+                    >
+                        ✅ Tout Accepter
+                    </button>
+                </div>
             </div>
 
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
                 <div className="flex gap-2 overflow-x-auto pb-2">
-                    {['all', 'pending', 'accepted', 'preparing', 'delivered', 'cancelled'].map(f => (
+                    {['all', 'pending', 'accepted', 'preparing', 'picked_up', 'delivered', 'cancelled'].map(f => (
                         <button
                             key={f}
                             onClick={() => setFilter(f)}
                             className={`rounded px-3 py-1 text-sm font-medium transition-colors capitalize whitespace-nowrap ${filter === f ? 'bg-[#3C50E0] text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}
                         >
-                            {f === 'all' ? 'Toutes' : f}
+                            {f === 'all' ? 'Toutes' : f === 'picked_up' ? 'Livraison' : f}
                         </button>
                     ))}
                 </div>
@@ -110,8 +176,9 @@ const AdminOrders = () => {
                                 <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">Restaurant</th>
                                 <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">Client</th>
                                 <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">Total</th>
+                                <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">Livreur</th>
                                 <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">Statut</th>
-                                <th className="py-4 px-4 font-medium text-black dark:text-white">Action</th>
+                                <th className="py-4 px-4 font-medium text-black dark:text-white">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -131,6 +198,22 @@ const AdminOrders = () => {
                                         </td>
                                         <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                                             <p className="text-black dark:text-white font-medium">{formatCurrency(order.total)}</p>
+                                        </td>
+                                        {/* Colonne Livreur */}
+                                        <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                                            {order.driverId ? (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                                                    <span className="text-sm text-green-700 font-medium">{order.driverName || 'Assigné'}</span>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => openDriverModal(order)}
+                                                    className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-medium hover:bg-blue-100 transition-colors"
+                                                >
+                                                    <span>🚗</span> Assigner
+                                                </button>
+                                            )}
                                         </td>
                                         <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
                                             <p className={`inline-flex rounded-full bg-opacity-10 py-1 px-3 text-sm font-medium ${statusInfo.color}`}>
@@ -167,6 +250,69 @@ const AdminOrders = () => {
                     </div>
                 )}
             </div>
+
+            {/* 🚗 Modal d'assignation de livreur */}
+            {showDriverModal && selectedOrder && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-bold text-gray-800">🚗 Assigner un livreur</h3>
+                            <button
+                                onClick={() => { setShowDriverModal(false); setSelectedOrder(null); }}
+                                className="text-gray-400 hover:text-gray-600 text-2xl"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <div className="mb-4 p-3 bg-gray-50 rounded-xl">
+                            <p className="text-sm text-gray-500">Commande</p>
+                            <p className="font-bold text-gray-800">#{selectedOrder.id.slice(0, 8)}</p>
+                            <p className="text-sm text-gray-600">{selectedOrder.restaurantName} → {selectedOrder.userFirstName}</p>
+                        </div>
+
+                        <p className="text-sm font-medium text-gray-700 mb-3">Choisir un livreur :</p>
+
+                        {drivers.length === 0 ? (
+                            <div className="text-center py-8 text-gray-500">
+                                <p className="text-4xl mb-2">😕</p>
+                                <p>Aucun livreur disponible</p>
+                                <p className="text-xs mt-1">Ajoutez des utilisateurs avec le rôle "driver"</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-2 max-h-60 overflow-y-auto">
+                                {drivers.map(driver => (
+                                    <button
+                                        key={driver.id}
+                                        onClick={() => assignDriver(selectedOrder.id, driver.id)}
+                                        className="w-full flex items-center gap-3 p-3 bg-gray-50 hover:bg-blue-50 rounded-xl transition-colors text-left"
+                                    >
+                                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-xl">
+                                            {driver.photoURL ? (
+                                                <img src={driver.photoURL} alt="" className="w-10 h-10 rounded-full object-cover" />
+                                            ) : '🧑'}
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-medium text-gray-800">
+                                                {driver.firstName || ''} {driver.lastName || 'Livreur'}
+                                            </p>
+                                            <p className="text-xs text-gray-500">{driver.phoneNumber || 'Pas de téléphone'}</p>
+                                        </div>
+                                        <span className="text-blue-500">→</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        <button
+                            onClick={() => { setShowDriverModal(false); setSelectedOrder(null); }}
+                            className="w-full mt-4 py-2 text-gray-600 hover:text-gray-800 text-sm"
+                        >
+                            Annuler
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

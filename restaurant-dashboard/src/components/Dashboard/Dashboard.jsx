@@ -59,104 +59,109 @@ const Dashboard = () => {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-gray-600">Chargement des statistiques...</p>
+                    <div className="w-16 h-16 border-4 border-[#4318FF] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-[#A3AED0]">Chargement des statistiques...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen p-8 bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="font-dm-sans text-[#2B3674]">
             {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-4xl font-black text-gray-900">Tableau de Bord</h1>
-                <p className="text-gray-500 mt-2">Vue d'ensemble de vos performances</p>
+            <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <p className="text-sm font-medium text-[#A3AED0] mb-1">Restaurant / Vue d'ensemble</p>
+                    <h1 className="text-[34px] font-bold text-[#2B3674] tracking-tight">Tableau de Bord</h1>
+                </div>
+                <div className="flex items-center gap-4">
+                    <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-[#2B3674] text-sm font-bold shadow-sm hover:shadow-md transition-all">
+                        <span className="text-lg">📊</span>
+                        Exporter
+                    </button>
+                </div>
             </div>
 
             {/* KPI Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {/* Total Orders */}
-                <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 hover:shadow-2xl transition-shadow">
-                    <div className="flex items-start justify-between">
+                <div className="bg-white rounded-[20px] p-6 shadow-[0px_18px_40px_rgba(112,144,176,0.12)] flex flex-col justify-between h-32 relative overflow-hidden">
+                    <div className="flex justify-between items-start">
                         <div>
-                            <p className="text-gray-500 text-sm font-semibold uppercase tracking-wide">Total Commandes</p>
-                            <p className="text-4xl font-black text-gray-900 mt-2">{stats.totalOrders}</p>
-                            <p className="text-green-600 text-sm font-medium mt-2">↗ +12% ce mois</p>
+                            <p className="text-sm font-bold text-[#A3AED0] uppercase mb-1 tracking-wider">Total Commandes</p>
+                            <h4 className="text-3xl font-bold text-[#2B3674]">{stats.totalOrders}</h4>
                         </div>
-                        <div className="bg-gradient-to-br from-sky-100 to-blue-100 p-4 rounded-2xl">
-                            <svg className="w-8 h-8 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                            </svg>
+                        <div className="h-12 w-12 rounded-full flex items-center justify-center text-xl bg-[#ECF2FF] text-[#4318FF]">
+                            📦
                         </div>
+                    </div>
+                    <div className="flex items-center gap-2 mt-auto">
+                        <span className="text-sm font-bold text-[#05CD99] flex items-center">
+                            <span className="text-lg">↑</span> +12%
+                        </span>
+                        <span className="text-xs text-[#A3AED0] font-medium">ce mois</span>
                     </div>
                 </div>
 
                 {/* Revenue */}
-                <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl p-6 shadow-xl text-white hover:shadow-2xl transition-shadow">
-                    <div className="flex items-start justify-between">
+                <div className="bg-gradient-to-br from-[#4318FF] to-[#868CFF] rounded-[20px] p-6 shadow-[0px_18px_40px_rgba(67,24,255,0.25)] text-white flex flex-col justify-between h-32">
+                    <div className="flex justify-between items-start">
                         <div>
-                            <p className="text-green-100 text-sm font-semibold uppercase tracking-wide">Chiffre d'Affaires</p>
-                            <p className="text-4xl font-black mt-2">{(stats.totalRevenue).toLocaleString()} FC</p>
-                            <p className="text-green-200 text-sm font-medium mt-2">Total cumulé</p>
+                            <p className="text-sm font-bold text-white/70 uppercase mb-1 tracking-wider">Chiffre d'Affaires</p>
+                            <h4 className="text-3xl font-bold">{stats.totalRevenue.toLocaleString()} FC</h4>
                         </div>
-                        <div className="bg-white/20 p-4 rounded-2xl backdrop-blur">
-                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                        <div className="h-12 w-12 rounded-full flex items-center justify-center text-xl bg-white/20 backdrop-blur">
+                            💰
                         </div>
                     </div>
+                    <p className="text-sm text-white/80 font-medium">Total cumulé</p>
                 </div>
 
                 {/* Pending Orders */}
-                <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 hover:shadow-2xl transition-shadow">
-                    <div className="flex items-start justify-between">
+                <div className="bg-white rounded-[20px] p-6 shadow-[0px_18px_40px_rgba(112,144,176,0.12)] flex flex-col justify-between h-32">
+                    <div className="flex justify-between items-start">
                         <div>
-                            <p className="text-gray-500 text-sm font-semibold uppercase tracking-wide">En Attente</p>
-                            <p className="text-4xl font-black text-gray-900 mt-2">{stats.pendingOrders}</p>
-                            <p className="text-orange-600 text-sm font-medium mt-2">⏳ À traiter</p>
+                            <p className="text-sm font-bold text-[#A3AED0] uppercase mb-1 tracking-wider">En Attente</p>
+                            <h4 className="text-3xl font-bold text-[#2B3674]">{stats.pendingOrders}</h4>
                         </div>
-                        <div className="bg-gradient-to-br from-orange-100 to-amber-100 p-4 rounded-2xl">
-                            <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                        <div className="h-12 w-12 rounded-full flex items-center justify-center text-xl bg-[#FFF6DA] text-[#FFB547]">
+                            ⏳
                         </div>
                     </div>
+                    <p className="text-sm text-[#A3AED0] font-medium">À traiter rapidement</p>
                 </div>
 
                 {/* Today's Revenue */}
-                <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-3xl p-6 shadow-xl text-white hover:shadow-2xl transition-shadow">
-                    <div className="flex items-start justify-between">
+                <div className="bg-gradient-to-br from-[#111C44] to-[#1B254B] rounded-[20px] p-6 shadow-[0px_18px_40px_rgba(17,28,68,0.25)] text-white flex flex-col justify-between h-32">
+                    <div className="flex justify-between items-start">
                         <div>
-                            <p className="text-purple-100 text-sm font-semibold uppercase tracking-wide">Aujourd'hui</p>
-                            <p className="text-4xl font-black mt-2">{(stats.todayRevenue).toLocaleString()} FC</p>
-                            <p className="text-purple-200 text-sm font-medium mt-2">Revenue du jour</p>
+                            <p className="text-sm font-bold text-white/70 uppercase mb-1 tracking-wider">Aujourd'hui</p>
+                            <h4 className="text-3xl font-bold">{stats.todayRevenue.toLocaleString()} FC</h4>
                         </div>
-                        <div className="bg-white/20 p-4 rounded-2xl backdrop-blur">
-                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
+                        <div className="h-12 w-12 rounded-full flex items-center justify-center text-xl bg-white/10 backdrop-blur">
+                            📅
                         </div>
                     </div>
+                    <p className="text-sm text-white/80 font-medium">Revenus du jour</p>
                 </div>
             </div>
 
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 {/* Performance Chart */}
-                <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-                    <h3 className="text-xl font-bold text-gray-900 mb-6">Performance des Commandes</h3>
+                <div className="bg-white rounded-[20px] p-8 shadow-[0px_18px_40px_rgba(112,144,176,0.12)]">
+                    <h3 className="text-lg font-bold text-[#2B3674] mb-6">Performance des Commandes</h3>
 
                     {/* Simple Bar Chart using CSS */}
                     <div className="space-y-4">
                         <div>
                             <div className="flex justify-between mb-2">
-                                <span className="text-sm font-semibold text-gray-600">Terminées</span>
-                                <span className="text-sm font-bold text-green-600">{stats.completedOrders}</span>
+                                <span className="text-sm font-semibold text-[#A3AED0]">Terminées</span>
+                                <span className="text-sm font-bold text-[#05CD99]">{stats.completedOrders}</span>
                             </div>
-                            <div className="h-8 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-3 bg-[#F4F7FE] rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-1000"
+                                    className="h-full bg-gradient-to-r from-[#05CD99] to-[#05CD99]/70 rounded-full transition-all duration-1000"
                                     style={{ width: `${stats.totalOrders > 0 ? (stats.completedOrders / stats.totalOrders) * 100 : 0}%` }}
                                 ></div>
                             </div>
@@ -164,12 +169,12 @@ const Dashboard = () => {
 
                         <div>
                             <div className="flex justify-between mb-2">
-                                <span className="text-sm font-semibold text-gray-600">En Attente</span>
-                                <span className="text-sm font-bold text-orange-600">{stats.pendingOrders}</span>
+                                <span className="text-sm font-semibold text-[#A3AED0]">En Attente</span>
+                                <span className="text-sm font-bold text-[#FFB547]">{stats.pendingOrders}</span>
                             </div>
-                            <div className="h-8 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-3 bg-[#F4F7FE] rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-gradient-to-r from-orange-400 to-amber-500 rounded-full transition-all duration-1000"
+                                    className="h-full bg-gradient-to-r from-[#FFB547] to-[#FFB547]/70 rounded-full transition-all duration-1000"
                                     style={{ width: `${stats.totalOrders > 0 ? (stats.pendingOrders / stats.totalOrders) * 100 : 0}%` }}
                                 ></div>
                             </div>
@@ -177,14 +182,14 @@ const Dashboard = () => {
 
                         <div>
                             <div className="flex justify-between mb-2">
-                                <span className="text-sm font-semibold text-gray-600">En Cours</span>
-                                <span className="text-sm font-bold text-sky-600">
+                                <span className="text-sm font-semibold text-[#A3AED0]">En Cours</span>
+                                <span className="text-sm font-bold text-[#4318FF]">
                                     {stats.totalOrders - stats.completedOrders - stats.pendingOrders}
                                 </span>
                             </div>
-                            <div className="h-8 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-3 bg-[#F4F7FE] rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-gradient-to-r from-sky-400 to-blue-500 rounded-full transition-all duration-1000"
+                                    className="h-full bg-gradient-to-r from-[#4318FF] to-[#868CFF] rounded-full transition-all duration-1000"
                                     style={{ width: `${stats.totalOrders > 0 ? ((stats.totalOrders - stats.completedOrders - stats.pendingOrders) / stats.totalOrders) * 100 : 0}%` }}
                                 ></div>
                             </div>
@@ -193,60 +198,60 @@ const Dashboard = () => {
                 </div>
 
                 {/* Revenue Breakdown */}
-                <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-                    <h3 className="text-xl font-bold text-gray-900 mb-6">Analyse Financière</h3>
+                <div className="bg-white rounded-[20px] p-8 shadow-[0px_18px_40px_rgba(112,144,176,0.12)]">
+                    <h3 className="text-lg font-bold text-[#2B3674] mb-6">Analyse Financière</h3>
 
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-sky-50 to-blue-50 rounded-2xl border-2 border-sky-200">
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between p-4 bg-[#F4F7FE] rounded-2xl border border-[#E9EDF7]">
                             <div>
-                                <p className="text-sm font-semibold text-gray-600">Valeur Moy. Commande</p>
-                                <p className="text-2xl font-black text-gray-900 mt-1">{Math.round(stats.avgOrderValue).toLocaleString()} FC</p>
+                                <p className="text-sm font-semibold text-[#A3AED0]">Valeur Moy. Commande</p>
+                                <p className="text-2xl font-bold text-[#2B3674] mt-1">{Math.round(stats.avgOrderValue).toLocaleString()} FC</p>
                             </div>
-                            <div className="text-4xl">💰</div>
+                            <div className="h-14 w-14 rounded-2xl bg-[#ECF2FF] flex items-center justify-center text-2xl">💰</div>
                         </div>
 
-                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200">
+                        <div className="flex items-center justify-between p-4 bg-[#F4F7FE] rounded-2xl border border-[#E9EDF7]">
                             <div>
-                                <p className="text-sm font-semibold text-gray-600">Taux de Complétion</p>
-                                <p className="text-2xl font-black text-gray-900 mt-1">
+                                <p className="text-sm font-semibold text-[#A3AED0]">Taux de Complétion</p>
+                                <p className="text-2xl font-bold text-[#2B3674] mt-1">
                                     {stats.totalOrders > 0 ? Math.round((stats.completedOrders / stats.totalOrders) * 100) : 0}%
                                 </p>
                             </div>
-                            <div className="text-4xl">✅</div>
+                            <div className="h-14 w-14 rounded-2xl bg-[#E1FFF4] flex items-center justify-center text-2xl">✅</div>
                         </div>
 
-                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border-2 border-purple-200">
+                        <div className="flex items-center justify-between p-4 bg-[#F4F7FE] rounded-2xl border border-[#E9EDF7]">
                             <div>
-                                <p className="text-sm font-semibold text-gray-600">Revenue Moyen/Jour</p>
-                                <p className="text-2xl font-black text-gray-900 mt-1">{Math.round(stats.todayRevenue).toLocaleString()} FC</p>
+                                <p className="text-sm font-semibold text-[#A3AED0]">Commandes Livrées</p>
+                                <p className="text-2xl font-bold text-[#2B3674] mt-1">{stats.completedOrders}</p>
                             </div>
-                            <div className="text-4xl">📈</div>
+                            <div className="h-14 w-14 rounded-2xl bg-[#ECF2FF] flex items-center justify-center text-2xl">🚀</div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">Actions Rapides</h3>
+            <div className="bg-white rounded-[20px] p-8 shadow-[0px_18px_40px_rgba(112,144,176,0.12)]">
+                <h3 className="text-lg font-bold text-[#2B3674] mb-6">Actions Rapides</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button className="p-6 bg-gradient-to-br from-sky-500 to-blue-600 text-white rounded-2xl hover:shadow-xl transition-all hover:scale-105 active:scale-95">
+                    <button className="p-6 bg-gradient-to-br from-[#4318FF] to-[#868CFF] text-white rounded-2xl hover:shadow-xl hover:shadow-[#4318FF]/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
                         <div className="text-3xl mb-2">📋</div>
                         <p className="font-bold text-lg">Voir Commandes</p>
-                        <p className="text-sky-100 text-sm mt-1">{stats.pendingOrders} en attente</p>
+                        <p className="text-white/70 text-sm mt-1">{stats.pendingOrders} en attente</p>
                     </button>
 
-                    <button className="p-6 bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-2xl hover:shadow-xl transition-all hover:scale-105 active:scale-95">
+                    <button className="p-6 bg-gradient-to-br from-[#111C44] to-[#1B254B] text-white rounded-2xl hover:shadow-xl hover:shadow-[#111C44]/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
                         <div className="text-3xl mb-2">🍽️</div>
                         <p className="font-bold text-lg">Gérer Menu</p>
-                        <p className="text-green-100 text-sm mt-1">Ajouter des plats</p>
+                        <p className="text-white/70 text-sm mt-1">Ajouter des plats</p>
                     </button>
 
-                    <button className="p-6 bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-2xl hover:shadow-xl transition-all hover:scale-105 active:scale-95">
+                    <button className="p-6 bg-white border-2 border-[#E9EDF7] text-[#2B3674] rounded-2xl hover:shadow-xl hover:border-[#4318FF]/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
                         <div className="text-3xl mb-2">⚙️</div>
                         <p className="font-bold text-lg">Paramètres</p>
-                        <p className="text-purple-100 text-sm mt-1">Configuration</p>
+                        <p className="text-[#A3AED0] text-sm mt-1">Configuration</p>
                     </button>
                 </div>
             </div>

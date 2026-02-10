@@ -62,9 +62,9 @@ const ProfileScreen = () => {
     },
     {
       id: 'address',
-      title: 'Adresse de livraison',
+      title: 'Carnet d\'adresses',
       icon: <MapPinIcon size={24} color={PRIMARY_COLOR} />, // Bleu ciel
-      onPress: () => navigation.navigate("UserDetails"), // Redirige vers l'édition du profil/adresse
+      onPress: () => navigation.navigate("AddressBook"), // Redirige vers le carnet d'adresses
       bgColor: 'bg-sky-50'
     },
     {

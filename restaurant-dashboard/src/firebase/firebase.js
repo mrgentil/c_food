@@ -21,9 +21,15 @@ export const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()
 // Initialize Cloud Firestore
 export const db = getFirestore(app);
 
-// Initialize Firebase Auth
+// Initialize Firebase Auth (principal)
 export const auth = getAuth(app);
+
+// 🆕 Secondary Auth pour créer des utilisateurs sans déconnecter l'admin
+// On crée une seconde instance Firebase App avec un nom différent
+const secondaryApp = initializeApp(firebaseConfig, "secondaryApp");
+export const secondaryAuth = getAuth(secondaryApp);
 
 // Initialize Cloud Storage
 import { getStorage } from "firebase/storage";
 export const storage = getStorage(app);
+

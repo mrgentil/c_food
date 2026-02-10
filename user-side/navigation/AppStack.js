@@ -10,6 +10,8 @@ import WalletScreen from "../screens/WalletScreen";
 import FidelityScreen from "../screens/FidelityScreen";
 import GiftCardScreen from "../screens/GiftCardScreen";
 import AnnouncementsScreen from "../screens/AnnouncementsScreen";
+import ChatScreen from "../screens/ChatScreen";
+import AddressBookScreen from "../screens/AddressBookScreen";
 import { UserAuth } from "../contexts/AuthContext";
 import TabNavigator from "./TabNavigator";
 
@@ -76,6 +78,8 @@ const AppStack = () => {
       <Stack.Screen name="Fidelity" component={FidelityScreen} options={{ headerShown: false }} />
       <Stack.Screen name="GiftCard" component={GiftCardScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Announcements" component={AnnouncementsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="ChatScreen" component={ChatScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="AddressBook" component={AddressBookScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 };
