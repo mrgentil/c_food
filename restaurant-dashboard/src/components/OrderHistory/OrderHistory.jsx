@@ -75,6 +75,7 @@ const OrderHistory = () => {
                 <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">Client</th>
                 <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">Montant</th>
                 <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">Statut</th>
+                <th className="min-w-[100px] py-4 px-4 font-medium text-black dark:text-white">Preuve</th>
               </tr>
             </thead>
             <tbody>
@@ -96,6 +97,13 @@ const OrderHistory = () => {
                       <p className={`inline-flex rounded-full bg-opacity-10 py-1 px-3 text-sm font-medium ${statusInfo.color}`}>
                         {statusInfo.label}
                       </p>
+                    </td>
+                    <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                      {item.deliveryPhotoURL ? (
+                        <a href={item.deliveryPhotoURL} target="_blank" rel="noreferrer" className="text-xs font-bold text-blue-500 hover:underline">
+                          📸 Preuve
+                        </a>
+                      ) : '-'}
                     </td>
                   </tr>
                 );

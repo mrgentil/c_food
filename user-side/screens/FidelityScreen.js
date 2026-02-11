@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 
 const FidelityScreen = () => {
     const navigation = useNavigation();
+    const { dbUser } = require('../contexts/AuthContext').UserAuth();
 
     return (
         <View className="flex-1 bg-gray-50">
@@ -30,13 +31,13 @@ const FidelityScreen = () => {
                         <View className="flex-row justify-between items-start mb-4">
                             <View>
                                 <Text className="text-white/80 font-medium mb-1">Vos points</Text>
-                                <Text className="text-white text-4xl font-bold">0 pts</Text>
+                                <Text className="text-white text-4xl font-bold">{dbUser?.loyaltyPoints || 0} pts</Text>
                             </View>
                             <View className="bg-white/20 p-2 rounded-xl">
                                 <TrophyIcon size={32} color="white" />
                             </View>
                         </View>
-                        <Text className="text-white/70 text-sm">Gagnez des points à chaque commande !</Text>
+                        <Text className="text-white/70 text-sm">Gagnez 1 point tous les 1000 FC dépensés !</Text>
                     </View>
 
                     {/* Cashback Card */}
@@ -47,10 +48,10 @@ const FidelityScreen = () => {
                             </View>
                             <View>
                                 <Text className="font-bold text-gray-800 text-lg">Cashback</Text>
-                                <Text className="text-gray-500 text-xs">Cumulé sur vos achats</Text>
+                                <Text className="text-gray-500 text-xs">Cumulé (Portefeuille)</Text>
                             </View>
                         </View>
-                        <Text className="text-xl font-bold text-[#8B5CF6]">0 FC</Text>
+                        <Text className="text-xl font-bold text-[#8B5CF6]">{new Intl.NumberFormat('fr-CD').format(dbUser?.walletBalance || 0)} FC</Text>
                     </View>
 
                     {/* Rewards List Placeholder */}

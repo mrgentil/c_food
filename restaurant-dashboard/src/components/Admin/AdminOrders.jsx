@@ -47,11 +47,14 @@ const AdminOrders = () => {
 
             // 🎯 Increment loyalty points when order is delivered
             if (newStatus === 'delivered' && previousStatus !== 'delivered' && order?.userId) {
-                const userRef = doc(db, 'user', order.userId);
-                await updateDoc(userRef, {
-                    loyaltyPoints: increment(1)
-                });
-                console.log(`🏆 Loyalty point added for user ${order.userId}`);
+                const pointsAwarded = Math.floor((order.total || 0) / 1000);
+                if (pointsAwarded > 0) {
+                    const userRef = doc(db, 'user', order.userId);
+                    await updateDoc(userRef, {
+                        loyaltyPoints: increment(pointsAwarded)
+                    });
+                    console.log(`🏆 ${pointsAwarded} Loyalty points added for user ${order.userId}`);
+                }
             }
 
             setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
@@ -177,6 +180,7 @@ const AdminOrders = () => {
                                 <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">Client</th>
                                 <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">Total</th>
                                 <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">Livreur</th>
+                                <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">Preuve</th>
                                 <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">Statut</th>
                                 <th className="py-4 px-4 font-medium text-black dark:text-white">Actions</th>
                             </tr>
@@ -213,6 +217,20 @@ const AdminOrders = () => {
                                                 >
                                                     <span>🚗</span> Assigner
                                                 </button>
+                                            )}
+                                        </td>
+                                        <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                                            {order.deliveryPhotoURL ? (
+                                                <a
+                                                    href={order.deliveryPhotoURL}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-600 rounded-lg text-xs font-bold hover:bg-green-100"
+                                                >
+                                                    📸 Voir
+                                                </a>
+                                            ) : (
+                                                <span className="text-gray-300 text-xs">-</span>
                                             )}
                                         </td>
                                         <td className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">

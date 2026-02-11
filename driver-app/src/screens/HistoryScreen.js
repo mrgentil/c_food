@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity } from "react-native";
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, TouchableOpacity, Modal, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -50,8 +50,14 @@ const HistoryScreen = () => {
         return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
     };
 
+    const [selectedImage, setSelectedImage] = useState(null);
+
     const renderItem = ({ item }) => (
-        <View style={styles.card}>
+        <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate("OrdersDeliveryScreen", { order: item })}
+            activeOpacity={0.7}
+        >
             <View style={styles.row}>
                 <View style={styles.iconContainer}>
                     <MaterialIcons name="restaurant" size={20} color="#0EA5E9" />
@@ -66,13 +72,25 @@ const HistoryScreen = () => {
             <View style={styles.footerRow}>
                 <View style={styles.badge}>
                     <Text style={styles.badgeText}>COMMISSION: {formatPrice((item.total || 0) * 0.1)}</Text>
-                    {/* Placeholder Logic for commission, assume 10% */}
                 </View>
-                <View style={styles.statusBadge}>
-                    <Text style={styles.statusText}>LIVRÉE ✅</Text>
+
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    {item.deliveryPhotoURL && (
+                        <TouchableOpacity
+                            onPress={() => setSelectedImage(item.deliveryPhotoURL)}
+                            style={styles.cameraIcon}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
+                            <Ionicons name="camera" size={20} color="#0EA5E9" />
+                            <Text style={styles.cameraText}>Preuve</Text>
+                        </TouchableOpacity>
+                    )}
+                    <View style={styles.statusBadge}>
+                        <Text style={styles.statusText}>LIVRÉE ✅</Text>
+                    </View>
                 </View>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 
     return (
@@ -102,6 +120,16 @@ const HistoryScreen = () => {
                     }
                 />
             )}
+
+            {/* Modal pour afficher la preuve en grand */}
+            <Modal visible={!!selectedImage} transparent={true} onRequestClose={() => setSelectedImage(null)}>
+                <View style={styles.modalContainer}>
+                    <TouchableOpacity style={styles.closeModalButton} onPress={() => setSelectedImage(null)}>
+                        <Ionicons name="close-circle" size={40} color="white" />
+                    </TouchableOpacity>
+                    <Image source={{ uri: selectedImage }} style={styles.fullImage} resizeMode="contain" />
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 };
@@ -121,12 +149,17 @@ const styles = StyleSheet.create({
     date: { fontSize: 12, color: '#A3AED0', marginTop: 2 },
     price: { fontSize: 16, fontWeight: 'bold', color: '#05CD99' },
     divider: { height: 1, backgroundColor: '#F3F4F6', marginVertical: 12 },
-    footerRow: { flexDirection: 'row', justifyContent: 'space-between' },
+    footerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     badge: { backgroundColor: '#F4F7FE', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
     badgeText: { fontSize: 10, color: '#A3AED0', fontWeight: 'bold' },
     statusBadge: { backgroundColor: '#DCFCE7', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
     statusText: { fontSize: 10, color: '#05CD99', fontWeight: 'bold' },
-    emptyText: { color: '#A3AED0', fontSize: 16 }
+    emptyText: { color: '#A3AED0', fontSize: 16 },
+    cameraIcon: { flexDirection: 'row', alignItems: 'center', marginRight: 10, backgroundColor: '#F0F9FF', padding: 4, borderRadius: 8 },
+    cameraText: { color: '#0EA5E9', fontSize: 10, fontWeight: 'bold', marginLeft: 4 },
+    modalContainer: { flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', alignItems: 'center' },
+    fullImage: { width: '100%', height: '80%' },
+    closeModalButton: { position: 'absolute', top: 50, right: 20, zIndex: 10 }
 });
 
 export default HistoryScreen;

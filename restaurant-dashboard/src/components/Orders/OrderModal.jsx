@@ -112,10 +112,25 @@ const OrderModal = ({ setIsActive, selectedOrder }) => {
                 })}
               </div>
 
-              <div className="w-full flex py-4 justify-around font-bold text-lg text-gray-700">
+              <div className="w-full flex py-2 justify-around font-bold text-lg text-gray-700">
                 <div>Total:</div>
                 <div>Rs. {selectedOrder.total}</div>
               </div>
+
+              {/* 📸 Proof of Delivery */}
+              {selectedOrder.deliveryPhotoURL && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                  <p className="text-sm font-bold text-gray-500 mb-2">📸 Preuve de Livraison (Livreur)</p>
+                  <a href={selectedOrder.deliveryPhotoURL} target="_blank" rel="noreferrer">
+                    <img
+                      src={selectedOrder.deliveryPhotoURL}
+                      alt="Proof"
+                      className="w-full h-48 object-cover rounded-lg shadow-sm hover:opacity-90 transition-opacity"
+                    />
+                  </a>
+                  <p className="text-[10px] text-gray-400 mt-2">Cliquez sur l'image pour l'agrandir</p>
+                </div>
+              )}
 
               <div className="flex justify-between items-center">
                 {status === "PENDING" && (

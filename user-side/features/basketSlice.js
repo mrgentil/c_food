@@ -1,5 +1,4 @@
 import { createSlice, createSelector } from "@reduxjs/toolkit";
-import { Alert } from "react-native";
 
 const initialState = {
   restaurantId: null,
@@ -19,14 +18,9 @@ export const basketSlice = createSlice({
 
       if (state.restaurantId === itemRestaurantId) {
         state.items = [...state.items, action.payload];
-      } else {
-        Alert.alert(
-          "Oops!",
-          `Vous ne pouvez pas ajouter ${action.payload.name} car c'est d'un autre restaurant.`,
-          [{ text: "OK", style: "cancel" }],
-          { cancelable: true }
-        );
       }
+      // If mismatch, we do nothing in the reducer.
+      // The UI (DishRow) should handle the confirmation before dispatching.
     },
 
     removeFromBasket: (state, action) => {
@@ -86,6 +80,8 @@ export const basketSlice = createSlice({
 export const { addToBasket, removeFromBasket, increaseQuantity, decreaseQuantity, clearBasket } = basketSlice.actions;
 
 export const selectBasketItems = (state) => state.basket.items;
+
+export const selectBasketRestaurantId = (state) => state.basket.restaurantId;
 
 export const selectBasketItemsWithId = createSelector(
   [selectBasketItems, (state, id) => id],

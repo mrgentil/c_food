@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "UberEatsCourier",
+    "name": "C-Food Driver",
     "slug": "UberEatsCourier",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -23,10 +23,25 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
+      },
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "com.bedi.ubereatscourier",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDBNF48YL1FQFZuMlMSoQKceOeTHItBtmw"
+        }
       }
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "18a737a7-7e1a-4267-bd29-d7c421d8546e"
+      }
     }
   }
 }

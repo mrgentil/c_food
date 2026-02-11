@@ -25,13 +25,16 @@ import {
   serverTimestamp,
   query,
   orderBy,
-  onSnapshot
+  onSnapshot,
+  where,
+  getDocs,
+  limit
 } from "firebase/firestore";
 import PaymentModal from "../components/PaymentModal";
 import AnimatedButton from "../components/AnimatedButton";
 import AddressSearchAutocomplete from "../components/AddressSearchAutocomplete";
-import { XCircleIcon, PencilIcon, MapPinIcon, clipboardDocumentListIcon, ClipboardDocumentListIcon } from "react-native-heroicons/outline"; // clipboardDocumentListIcon might be wrong, checking Heroicons standard. 'ClipboardDocumentListIcon' is safe.
-import { Modal, TextInput, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from "react-native";
+import { XCircleIcon, PencilIcon, MapPinIcon, ClipboardDocumentListIcon, TicketIcon, CheckCircleIcon } from "react-native-heroicons/outline";
+import { Modal, TextInput, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ActivityIndicator, Alert } from "react-native";
 
 const BasketScreen = () => {
   const navigation = useNavigation();
@@ -43,6 +46,12 @@ const BasketScreen = () => {
   const [loading, setLoading] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedOperator, setSelectedOperator] = useState(null);
+
+  // Promo Code State
+  const [promoCodeInput, setPromoCodeInput] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState(null);
+  const [validatingPromo, setValidatingPromo] = useState(false);
+  const [discountAmount, setDiscountAmount] = useState(0);
 
   // Delivery Details State
   const [deliveryAddress, setDeliveryAddress] = useState(null);
@@ -110,6 +119,81 @@ const BasketScreen = () => {
     setGroupItemsInBucket(groupItems);
   }, [items]);
 
+  // Handle Promo Code Validation
+  const applyPromoCode = async () => {
+    if (!promoCodeInput.trim()) return;
+    setValidatingPromo(true);
+
+    try {
+      const promoRef = collection(db, "promoCodes");
+      const q = query(
+        promoRef,
+        where("code", "==", promoCodeInput.trim().toUpperCase()),
+        where("isActive", "==", true),
+        limit(1)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        Alert.alert("Désolé", "Ce code promo n'existe pas ou est expiré.");
+        setAppliedPromo(null);
+        setDiscountAmount(0);
+      } else {
+        const promoData = querySnapshot.docs[0].data();
+
+        // 🏨 NEW: Check Restaurant Restriction
+        if (promoData.restaurantId && promoData.restaurantId !== restaurant.id) {
+          Alert.alert("Invalide", "Ce code n'est pas valable pour ce restaurant.");
+          setValidatingPromo(false);
+          return;
+        }
+
+        // Check Minimum Order Amount
+        if (basketTotal < (promoData.minOrder || 0)) {
+          Alert.alert("Montant insuffisant", `Ce code nécessite un panier d'au moins ${formatPrice(promoData.minOrder)}.`);
+          return;
+        }
+
+        // Check Expiry Date
+        if (promoData.expiryDate && promoData.expiryDate.toDate() < new Date()) {
+          Alert.alert("Expiré", "Ce code promo a expiré.");
+          return;
+        }
+
+        setAppliedPromo(promoData);
+
+        // Calculate Discount
+        let calculatedDiscount = 0;
+        if (promoData.type === "percentage") {
+          calculatedDiscount = (basketTotal * promoData.value) / 100;
+        } else {
+          calculatedDiscount = promoData.value;
+        }
+
+        setDiscountAmount(calculatedDiscount);
+        Alert.alert("Félicitations !", `Réduction de ${formatPrice(calculatedDiscount)} appliquée ! 🎉`);
+        Keyboard.dismiss();
+      }
+    } catch (error) {
+      console.error("Error applying promo:", error);
+      Alert.alert("Erreur", "Un problème est survenu lors de la validation du code.");
+    } finally {
+      setValidatingPromo(false);
+    }
+  };
+
+  // Recalculate discount if basket total changes
+  useEffect(() => {
+    if (appliedPromo) {
+      if (appliedPromo.type === "percentage") {
+        setDiscountAmount((basketTotal * appliedPromo.value) / 100);
+      } else {
+        setDiscountAmount(appliedPromo.value);
+      }
+    }
+  }, [basketTotal, appliedPromo]);
+
 
 
   const ordersCollection = collection(db, "orders");
@@ -154,7 +238,9 @@ const BasketScreen = () => {
 
         userPhoneNumber: dbUser?.phoneNumber || "",
         deliveryFee: deliveryFee,
-        total: basketTotal + deliveryFee,
+        total: basketTotal + deliveryFee - discountAmount,
+        promoCode: appliedPromo?.code || null,
+        discountAmount: discountAmount,
         paymentMethod: paymentDetails.operator,
         paymentPhone: paymentDetails.phoneNumber,
         paymentReference: paymentDetails.transactionRef,
@@ -352,8 +438,52 @@ const BasketScreen = () => {
             </Animatable.View>
           ))}
 
+          {/* Promo Code Input */}
+          <Animatable.View animation="fadeInUp" delay={550} className="bg-white p-4 mx-4 mt-6 rounded-2xl shadow-sm border border-gray-100">
+            <View className="flex-row items-center mb-3">
+              <TicketIcon size={20} color="#0EA5E9" />
+              <Text className="ml-2 font-bold text-gray-800">Code Promo</Text>
+            </View>
+
+            <View className="flex-row space-x-2">
+              <View className="flex-1 relative">
+                <TextInput
+                  placeholder="Entrez votre code"
+                  value={promoCodeInput}
+                  onChangeText={(txt) => setPromoCodeInput(txt.toUpperCase())}
+                  className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 font-bold text-gray-700 h-14"
+                  editable={!appliedPromo}
+                />
+                {appliedPromo && (
+                  <View className="absolute right-3 top-3">
+                    <CheckCircleIcon size={32} color="#10B981" />
+                  </View>
+                )}
+              </View>
+
+              <TouchableOpacity
+                onPress={appliedPromo ? () => { setAppliedPromo(null); setDiscountAmount(0); setPromoCodeInput(""); } : applyPromoCode}
+                disabled={validatingPromo}
+                className={`px-6 rounded-xl justify-center items-center h-14 ${appliedPromo ? 'bg-red-50' : 'bg-[#0EA5E9]'}`}
+              >
+                {validatingPromo ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className={`font-bold ${appliedPromo ? 'text-red-500' : 'text-white'}`}>
+                    {appliedPromo ? "Retirer" : "Appliquer"}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+            {appliedPromo && (
+              <Text className="text-[#10B981] text-xs mt-2 font-bold ml-1">
+                ✓ Code "{appliedPromo.code}" appliqué avec succès !
+              </Text>
+            )}
+          </Animatable.View>
+
           {/* Payment Section Title */}
-          <Animatable.View animation="fadeInUp" delay={600} className="mt-4 mb-2">
+          <Animatable.View animation="fadeInUp" delay={600} className="mt-6 mb-2">
             <Text className="text-lg font-extrabold text-gray-800 px-2">Paiement 💳</Text>
           </Animatable.View>
 
@@ -422,9 +552,16 @@ const BasketScreen = () => {
             </View>
           )}
 
+          {discountAmount > 0 && (
+            <View className="flex-row justify-between mb-4">
+              <Text className="text-green-500 font-bold italic">Réduction (Promo)</Text>
+              <Text className="font-bold text-green-500">-{formatPrice(discountAmount)}</Text>
+            </View>
+          )}
+
           <View className="flex-row justify-between items-center mb-5 pt-4 border-t border-gray-100">
             <Text className="font-black text-xl text-gray-900">Total</Text>
-            <Text className="font-black text-xl text-[#0EA5E9]">{formatPrice(basketTotal + deliveryFee)}</Text>
+            <Text className="font-black text-xl text-[#0EA5E9]">{formatPrice(basketTotal + deliveryFee - discountAmount)}</Text>
           </View>
 
           <TouchableOpacity
@@ -433,7 +570,7 @@ const BasketScreen = () => {
           >
             <Text className="text-white font-extrabold text-lg mr-2">Commander</Text>
             <Text className="text-white font-extrabold text-lg bg-blue-600/30 px-2 py-0.5 rounded text-xs overflow-hidden">
-              {formatPrice(basketTotal + deliveryFee)}
+              {formatPrice(basketTotal + deliveryFee - discountAmount)}
             </Text>
           </TouchableOpacity>
         </Animatable.View>
@@ -446,7 +583,7 @@ const BasketScreen = () => {
             setSelectedOperator(null);
           }}
           operator={selectedOperator || 'airtel'} // Default fallback if generic button clicked
-          amount={basketTotal + deliveryFee}
+          amount={basketTotal + deliveryFee - discountAmount}
           onSubmit={async (paymentDetails) => {
             setShowPaymentModal(false);
             await createOrder(paymentDetails);

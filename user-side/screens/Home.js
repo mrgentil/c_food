@@ -540,8 +540,11 @@ const Home = () => {
               {/* 📍 Bouton "Utiliser ma position actuelle" */}
               <TouchableOpacity
                 onPress={async () => {
+                  console.log("📍 Button pressed");
                   try {
+                    // Alert.alert("Debug", "Demande de localisation...");
                     const result = await getCurrentLocation();
+                    console.log("📍 Result:", result);
                     if (result?.location) {
                       setSelectedLocation({
                         latitude: result.location.latitude,
@@ -549,9 +552,13 @@ const Home = () => {
                         address: result.address?.formattedAddress,
                         district: result.address?.displayName,
                       });
+                      // Alert.alert("Succès", "Position trouvée !");
+                    } else {
+                      Alert.alert("Erreur", "Impossible de récupérer la position.");
                     }
                   } catch (error) {
                     console.error('Erreur GPS:', error);
+                    Alert.alert("Erreur GPS", error.message);
                   }
                 }}
                 className="flex-row items-center bg-blue-50 p-3 rounded-xl mt-3 border border-blue-100"

@@ -8,7 +8,8 @@ import {
   Alert,
   Linking,
   ScrollView,
-  StyleSheet
+  StyleSheet,
+  Image
 } from "react-native";
 import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import MapView, { Marker } from "react-native-maps";
@@ -28,6 +29,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../../../firebase/firebase";
 import { useAuth } from "../../contexts/AuthContext";
+import * as ImagePicker from 'expo-image-picker';
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyCi-MWuhMrs1DfJqTycPWS8N9KorPuAs-0";
 
@@ -40,6 +42,10 @@ const OrderDelivery = ({ route }) => {
   const [orderStatus, setOrderStatus] = useState(order.status || "preparing");
   const [loading, setLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [proofImage, setProofImage] = useState(null);
+  const [uploadingProof, setUploadingProof] = useState(false);
+  const [locationWatcher, setLocationWatcher] = useState(null);
+
   const navigation = useNavigation();
   const { width, height } = useWindowDimensions();
 
@@ -54,7 +60,65 @@ const OrderDelivery = ({ route }) => {
 
   useEffect(() => {
     getDriverLocation();
+
+    return () => {
+      if (locationWatcher) {
+        locationWatcher.remove();
+      }
+    };
   }, []);
+
+  // 🛰️ Watch Location in real-time when status is 'picked_up'
+  useEffect(() => {
+    let watcher = null;
+
+    const startWatching = async () => {
+      // Nettoyer l'ancien watcher si présent
+      if (locationWatcher) {
+        locationWatcher.remove();
+      }
+
+      if (orderStatus === 'picked_up') {
+        watcher = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Balanced,
+            timeInterval: 10000, // Update every 10s
+            distanceInterval: 20, // Or every 20 meters
+          },
+          (location) => {
+            const { latitude, longitude } = location.coords;
+            setDriverLocation({ latitude, longitude });
+            updateDriverPositionInFirestore(latitude, longitude);
+          }
+        );
+        setLocationWatcher(watcher);
+      } else {
+        if (locationWatcher) {
+          locationWatcher.remove();
+          setLocationWatcher(null);
+        }
+      }
+    };
+
+    startWatching();
+
+    return () => {
+      if (watcher) watcher.remove();
+    };
+  }, [orderStatus]);
+
+  const updateDriverPositionInFirestore = async (latitude, longitude) => {
+    try {
+      const orderRef = doc(db, "orders", order.id);
+      await updateDoc(orderRef, {
+        driverLatitude: latitude,
+        driverLongitude: longitude,
+        lastLocationUpdate: serverTimestamp(),
+      });
+    } catch (e) {
+      console.error("Error updating location in DB:", e);
+    }
+  };
 
   // 🔔 Listen for new messages
   useEffect(() => {
@@ -92,16 +156,100 @@ const OrderDelivery = ({ route }) => {
     });
   };
 
+  const takeProofPhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission refusée', 'Nous avons besoin de la caméra pour la preuve de livraison.');
+      return;
+    }
+
+    let result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.5,
+    });
+
+    if (!result.canceled) {
+      setProofImage(result.assets[0].uri);
+    }
+  };
+
+  const uploadProofImage = async (uri) => {
+    setUploadingProof(true);
+    const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dul9gmbzj/image/upload";
+    const UPLOAD_PRESET = "c_food";
+
+    try {
+      const formData = new FormData();
+      formData.append("file", {
+        uri: uri,
+        type: "image/jpeg",
+        name: "delivery_proof.jpg",
+      });
+      formData.append("upload_preset", UPLOAD_PRESET);
+      formData.append("folder", "delivery-proofs");
+
+      const response = await fetch(CLOUDINARY_URL, {
+        method: "POST",
+        body: formData,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'multipart/form-data',
+        }
+      });
+
+      const data = await response.json();
+      if (data.secure_url) {
+        return data.secure_url;
+      } else {
+        throw new Error("Erreur upload Cloudinary");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      Alert.alert("Erreur", "Impossible d'envoyer la photo");
+      return null;
+    } finally {
+      setUploadingProof(false);
+    }
+  };
+
   const updateOrderStatus = async (newStatus) => {
     setLoading(true);
     try {
+      let photoURL = null;
+
+      // Si on passe à "delivered" et qu'il y a une photo locale, on l'upload
+      if (newStatus === 'delivered' && proofImage) {
+        photoURL = await uploadProofImage(proofImage);
+        if (!photoURL) {
+          setLoading(false);
+          return; // Stop if upload failed
+        }
+      }
+
       const orderRef = doc(db, "orders", order.id);
-      await updateDoc(orderRef, {
+      const updateData = {
         status: newStatus,
         updatedAt: serverTimestamp(),
-        ...(newStatus === 'picked_up' && { driverId: driverProfile?.id })
-      });
+        ...(newStatus === 'picked_up' && { driverId: driverProfile?.id }),
+        ...(photoURL && { deliveryPhotoURL: photoURL })
+      };
+
+      await updateDoc(orderRef, updateData);
       setOrderStatus(newStatus);
+
+      // 🏆 Award Loyalty Points if delivered
+      if (newStatus === 'delivered' && order.userId) {
+        const pointsAwarded = Math.floor((order.total || 0) / 1000);
+        if (pointsAwarded > 0) {
+          const userRef = doc(db, "user", order.userId);
+          const { increment } = require("firebase/firestore");
+          await updateDoc(userRef, {
+            loyaltyPoints: increment(pointsAwarded)
+          });
+          console.log(`🏆 Awarded ${pointsAwarded} points to user ${order.userId}`);
+        }
+      }
     } catch (e) {
       console.error("Erreur mise à jour:", e);
       Alert.alert("Erreur", "Impossible de mettre à jour le statut");
@@ -119,16 +267,21 @@ const OrderDelivery = ({ route }) => {
         return { label: "📍 Arrivé chez le client", color: "#F59E0B", nextStatus: "arrived_at_customer" };
       case 'arrived_at_customer':
         return { label: "✅ Commande Livrée", color: "#10B981", nextStatus: "delivered" };
+      case 'delivered':
+        return { label: "⬅️ Retour à l'historique", color: "#111C44", isHistory: true };
       default:
         return null;
     }
   };
 
-
-
   const handleMainAction = () => {
     const config = getButtonConfig();
     if (!config) return;
+
+    if (config.isHistory) {
+      navigation.goBack();
+      return;
+    }
 
     if (config.nextStatus === 'delivered') {
       Alert.alert(
@@ -223,7 +376,7 @@ const OrderDelivery = ({ route }) => {
       </View>
 
       {/* Details - 60% height */}
-      <ScrollView style={styles.detailsContainer} contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView style={styles.detailsContainer} contentContainerStyle={{ paddingBottom: 150 }}>
         {/* Stats */}
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
@@ -254,6 +407,24 @@ const OrderDelivery = ({ route }) => {
             <Text style={styles.clientAddress}>{order.userAddress}</Text>
           </View>
         </View>
+
+        {/* Proof of Delivery (Photo) - Only show when arrived at customer */}
+        {orderStatus === 'arrived_at_customer' ? (
+          <View style={styles.proofContainer}>
+            <Text style={styles.proofTitle}>Preuve de livraison (Optionnel)</Text>
+            <TouchableOpacity onPress={takeProofPhoto} style={styles.photoButton}>
+              {proofImage ? (
+                <Image source={{ uri: proofImage }} style={styles.proofPreview} />
+              ) : (
+                <View style={styles.cameraPlaceholder}>
+                  <Ionicons name="camera" size={32} color="#6B7280" />
+                  <Text style={styles.cameraText}>Prendre une photo</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            {proofImage && <Text style={styles.photoTakenText}>Photo prise ✅</Text>}
+          </View>
+        ) : null}
 
         {/* Contact Buttons */}
         <View style={styles.contactRow}>
@@ -293,8 +464,19 @@ const OrderDelivery = ({ route }) => {
 
       {/* Action Button */}
       {buttonConfig && (
-        <TouchableOpacity onPress={handleMainAction} disabled={loading} style={[styles.actionButton, { backgroundColor: buttonConfig.color }]}>
-          {loading ? <ActivityIndicator color="white" /> : <Text style={styles.actionText}>{buttonConfig.label}</Text>}
+        <TouchableOpacity
+          onPress={handleMainAction}
+          disabled={loading || uploadingProof}
+          style={[styles.actionButton, { backgroundColor: buttonConfig.color }]}
+        >
+          {loading || uploadingProof ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <ActivityIndicator color="white" style={{ marginRight: 10 }} />
+              <Text style={styles.actionText}>{uploadingProof ? 'Envoi photo...' : 'Chargement...'}</Text>
+            </View>
+          ) : (
+            <Text style={styles.actionText}>{buttonConfig.label}</Text>
+          )}
         </TouchableOpacity>
       )}
     </View>
@@ -328,7 +510,14 @@ const styles = StyleSheet.create({
   totalLabel: { color: '#6B7280' },
   totalValue: { fontSize: 24, fontWeight: 'bold', color: '#3FC060' },
   actionButton: { position: 'absolute', bottom: 30, left: 20, right: 20, paddingVertical: 18, borderRadius: 16, alignItems: 'center' },
-  actionText: { color: 'white', fontWeight: 'bold', fontSize: 16 }
+  actionText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
+  proofContainer: { marginBottom: 16, alignItems: 'center' },
+  proofTitle: { fontSize: 14, fontWeight: '600', color: '#6B7280', marginBottom: 8, alignSelf: 'flex-start' },
+  photoButton: { width: '100%', height: 200, backgroundColor: '#F3F4F6', borderRadius: 16, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', borderStyle: 'dashed', borderWidth: 2, borderColor: '#D1D5DB' },
+  proofPreview: { width: '100%', height: '100%', resizeMode: 'cover' },
+  cameraPlaceholder: { alignItems: 'center' },
+  cameraText: { color: '#6B7280', marginTop: 8, fontWeight: '500' },
+  photoTakenText: { color: '#10B981', fontWeight: 'bold', marginTop: 4, alignSelf: 'flex-end' }
 });
 
 export default OrderDelivery;

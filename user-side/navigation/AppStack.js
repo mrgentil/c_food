@@ -21,7 +21,7 @@ const AppStack = () => {
 
   return (
     <Stack.Navigator
-      initialRouteName={dbUser ? "Main" : "UserDetails"}
+      initialRouteName="Main"
       screenOptions={{
         headerShown: false,
         animation: 'slide_from_right'

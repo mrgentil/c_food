@@ -12,6 +12,8 @@ import PaymentModal from '../components/PaymentModal';
 import AnimatedButton from '../components/AnimatedButton';
 import { db } from '../firebase';
 import { doc, updateDoc, onSnapshot, getDoc, collection } from 'firebase/firestore';
+import MapView, { Marker } from 'react-native-maps';
+import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 
 const OrderDetailsScreen = () => {
   const route = useRoute();
@@ -267,6 +269,67 @@ const OrderDetailsScreen = () => {
       </Animatable.View>
 
       <ScrollView className="flex-1 px-4 pt-5" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+
+        {/* 🗺️ CARTE DE SUIVI LIVE */}
+        {(orderData.status === 'picked_up' || orderData.status === 'arrived_at_customer') && (
+          <Animatable.View animation="zoomIn" duration={800} className="h-60 rounded-3xl overflow-hidden mb-6 shadow-md border border-gray-100">
+            <MapView
+              style={{ flex: 1 }}
+              initialRegion={{
+                latitude: orderData.driverLatitude || orderData.restaurantLatitude || -4.4419,
+                longitude: orderData.driverLongitude || orderData.restaurantLongitude || 15.2663,
+                latitudeDelta: 0.02,
+                longitudeDelta: 0.02,
+              }}
+            >
+              {/* Restaurant Marker */}
+              <Marker
+                coordinate={{
+                  latitude: orderData.restaurantLatitude,
+                  longitude: orderData.restaurantLongitude
+                }}
+                title={orderData.restaurantName}
+              >
+                <View className="bg-gray-800 p-2 rounded-full border-2 border-white">
+                  <MaterialIcons name="restaurant" size={16} color="white" />
+                </View>
+              </Marker>
+
+              {/* User/Home Marker */}
+              <Marker
+                coordinate={{
+                  latitude: orderData.userLatitude,
+                  longitude: orderData.userLongitude
+                }}
+                title="Ma Maison"
+              >
+                <View className="bg-[#0EA5E9] p-2 rounded-full border-2 border-white">
+                  <MaterialIcons name="home" size={18} color="white" />
+                </View>
+              </Marker>
+
+              {/* 🛵 MOTO LIVE MARKER */}
+              {orderData.driverLatitude && (
+                <Marker
+                  coordinate={{
+                    latitude: orderData.driverLatitude,
+                    longitude: orderData.driverLongitude
+                  }}
+                  title="Votre livreur"
+                  anchor={{ x: 0.5, y: 0.5 }}
+                >
+                  <Animatable.View
+                    animation="pulse"
+                    iterationCount="infinite"
+                    className="bg-green-500 p-2 rounded-full border-2 border-white"
+                  >
+                    <FontAwesome5 name="motorcycle" size={16} color="white" />
+                  </Animatable.View>
+                </Marker>
+              )}
+            </MapView>
+          </Animatable.View>
+        )}
 
         {/* ⏱️ CARTE D'ESTIMATION DE TEMPS */}
         {deliveryEstimate && (

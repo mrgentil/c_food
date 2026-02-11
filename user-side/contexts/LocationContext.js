@@ -46,16 +46,22 @@ export const LocationProvider = ({ children }) => {
             setLoading(true);
             setError(null);
 
-            // Vérifier la permission
-            const { status } = await Location.getForegroundPermissionsAsync();
+            // Vérifier et demander la permission si nécessaire
+            let { status } = await Location.getForegroundPermissionsAsync();
 
             if (status !== 'granted') {
-                throw new Error('Permission de localisation refusée');
+                console.log('📍 Requesting location permission...');
+                const { status: newStatus } = await Location.requestForegroundPermissionsAsync();
+                status = newStatus;
+
+                if (status !== 'granted') {
+                    throw new Error('Permission de localisation refusée');
+                }
             }
 
-            // Récupérer position GPS
+            // Récupérer position GPS (Balanced est plus rapide et moins susceptible de bloquer)
             const position = await Location.getCurrentPositionAsync({
-                accuracy: Location.Accuracy.Highest,
+                accuracy: Location.Accuracy.Balanced,
             });
 
             const locationData = {

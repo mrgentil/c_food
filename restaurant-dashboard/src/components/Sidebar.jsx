@@ -21,6 +21,9 @@ import AdminOrders from "./Admin/AdminOrders";
 import AdminReviews from "./Admin/AdminReviews";
 import AdminPromotions from "./Admin/AdminPromotions";
 import AdminDrivers from "./Admin/AdminDrivers";
+import AdminPromoCodes from "./Admin/AdminPromoCodes";
+import AdminGiftCards from "./Admin/AdminGiftCards";
+import RestaurantPromoCodes from "./Promotions/RestaurantPromoCodes";
 
 const Sidebar = () => {
   const [active, setActive] = useState(0);
@@ -37,6 +40,8 @@ const Sidebar = () => {
     { name: "Livreurs", category: "GESTION", icon: "delivery_dining", component: <AdminDrivers /> },
     { name: "Commandes", category: "GESTION", icon: "shopping_cart", component: <AdminOrders /> },
     { name: "Promotions", category: "VUE", icon: "local_offer", component: <AdminPromotions /> },
+    { name: "Codes Promos", category: "MARKETING", icon: "confirmation_number", component: <AdminPromoCodes /> },
+    { name: "Cartes Cadeaux", category: "MARKETING", icon: "card_giftcard", component: <AdminGiftCards /> },
     { name: "Avis Clients", category: "MODÉRATION", icon: "reviews", component: <AdminReviews /> },
   ];
 
@@ -45,6 +50,7 @@ const Sidebar = () => {
     { name: "Commandes", category: "GESTION", icon: "receipt_long", component: <Orders /> },
     { name: "Menu", category: "GESTION", icon: "restaurant_menu", component: <Menu /> },
     { name: "Promotions", category: "GESTION", icon: "local_offer", component: <Promotions /> },
+    { name: "Codes Promos", category: "MARKETING", icon: "confirmation_number", component: <RestaurantPromoCodes /> },
     { name: "Avis Clients", category: "GESTION", icon: "reviews", component: <Reviews /> },
     { name: "Historique", category: "GESTION", icon: "history", component: <OrderHistory /> },
     { name: "Paramètres", category: "SYSTÈME", icon: "settings", component: <Settings /> },
@@ -72,7 +78,9 @@ const Sidebar = () => {
       'receipt_long': 'receipt',
       'restaurant_menu': 'menu_book',
       'history': 'history',
-      'settings': 'settings'
+      'settings': 'settings',
+      'confirmation_number': 'confirmation_number',
+      'card_giftcard': 'featured_video'
     };
     return <span className="material-icons-outlined text-lg">{icons[iconName] || 'circle'}</span>;
   };
@@ -110,16 +118,11 @@ const Sidebar = () => {
                       : 'text-gray-400 hover:text-white hover:bg-white/5'
                     }`}
                 >
-                  {/* Icon Placeholder (If using Material Icons font in Head, otherwise simpler) */}
                   <span className={`material-symbols-outlined text-[20px] ${active === index ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>
-                    {/* Fallback to simple shapes if no icon lib */}
-                    {item.name.substring(0, 2).toUpperCase()}
+                    {item.icon}
                   </span>
 
                   <span className="font-medium text-sm tracking-wide">{item.name}</span>
-
-                  {/* Active Right Border visual trick if needed, but the button bg is cleaner */}
-                  {active === index && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-l-md hidden"></div>}
                 </button>
               </div>
             );

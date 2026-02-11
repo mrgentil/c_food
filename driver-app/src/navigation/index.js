@@ -19,7 +19,9 @@ import EditProfileScreen from "../screens/EditProfileScreen";
 const Stack = createNativeStackNavigator();
 
 const Navigation = () => {
+  console.log("🚀 [Navigation] Rendering Navigation component");
   const { isAuthenticated, loading } = useAuth();
+  console.log("🚀 [Navigation] Auth state:", { isAuthenticated, loading });
 
   // Afficher un loader pendant la vérification initiale
   if (loading) {

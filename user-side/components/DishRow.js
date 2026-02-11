@@ -1,10 +1,12 @@
-import { View, Text, Pressable, Image, TouchableOpacity } from "react-native";
+import { View, Text, Pressable, Image, TouchableOpacity, Alert } from "react-native";
 import { MinusCircleIcon, PlusCircleIcon } from "react-native-heroicons/solid";
 import React, { useState } from "react";
 import {
   addToBasket,
   selectBasketItemsWithId,
   removeFromBasket,
+  selectBasketRestaurantId,
+  clearBasket,
 } from "../features/basketSlice";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -13,8 +15,30 @@ const DishRow = ({ id, name, description, price, image, restaurantId }) => {
 
   const dispatch = useDispatch();
   const items = useSelector((state) => selectBasketItemsWithId(state, id));
+  const basketRestaurantId = useSelector(selectBasketRestaurantId);
 
   const addItems = () => {
+    // 🏨 Check if basket has items from another restaurant
+    if (basketRestaurantId && basketRestaurantId !== restaurantId) {
+      Alert.alert(
+        "Vider le panier ?",
+        "Votre panier contient déjà des produits d'un autre restaurant. Voulez-vous le vider pour commander ici ?",
+        [
+          { text: "Annuler", style: "cancel" },
+          {
+            text: "Vider et ajouter",
+            onPress: () => {
+              dispatch(clearBasket());
+              dispatch(
+                addToBasket({ id, restaurantId, name, description, price: Number(price), image })
+              );
+            },
+          },
+        ]
+      );
+      return;
+    }
+
     dispatch(
       addToBasket({ id, restaurantId, name, description, price: Number(price), image })
     );
