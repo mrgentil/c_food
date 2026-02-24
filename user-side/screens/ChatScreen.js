@@ -24,9 +24,11 @@ import {
     onSnapshot,
     serverTimestamp,
     doc,
-    updateDoc
+    updateDoc,
+    getDoc
 } from 'firebase/firestore';
 import { UserAuth } from '../contexts/AuthContext';
+import { sendPushNotification } from '../utils/pushNotifications';
 
 const ChatScreen = () => {
     const route = useRoute();
@@ -83,6 +85,27 @@ const ChatScreen = () => {
                 lastMessageSenderType: 'client',
                 lastMessageSenderName: user.displayName || 'Client'
             });
+
+            // 🔔 Send Push Notification to Driver
+            if (driverId) {
+                try {
+                    const driverRef = doc(db, "user", driverId);
+                    const driverSnap = await getDoc(driverRef);
+                    if (driverSnap.exists()) {
+                        const driverData = driverSnap.data();
+                        if (driverData.expoPushToken) {
+                            await sendPushNotification(
+                                driverData.expoPushToken,
+                                `Nouveau message de ${user.displayName || 'Client'}`,
+                                newMessage.trim(),
+                                { orderId, senderId: user.uid }
+                            );
+                        }
+                    }
+                } catch (notifError) {
+                    console.error("Error sending notification to driver:", notifError);
+                }
+            }
 
             setNewMessage('');
         } catch (error) {

@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     FlatList,
     Animated,
+    Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -17,24 +18,30 @@ const { width, height } = Dimensions.get('window');
 const slides = [
     {
         id: '1',
-        emoji: '👋',
-        title: 'Bienvenue chez C-Food',
-        subtitle: 'Rejoignez notre équipe de livreurs et commencez à gagner de l\'argent dès aujourd\'hui !',
+        image: require('../../assets/1.jpg'),
+        title: 'Rejoignez la flotte C-Food',
+        subtitle: 'OPPORTUNITÉ',
+        description: 'Devenez votre propre patron. Livrez des sourires et gagnez de l\'argent selon votre emploi du temps.',
         color: '#0EA5E9',
+        bg: '#F0F9FF',
     },
     {
         id: '2',
-        emoji: '💰',
-        title: 'Gagnez de l\'argent',
-        subtitle: 'Livrez des repas et recevez des paiements instantanés. Vous définissez vos propres horaires.',
-        color: '#0284C7', // Bleu un peu plus foncé
+        image: 'https://img.freepik.com/free-vector/delivery-service-illustrated_23-2148505080.jpg',
+        title: 'Gagnez plus, travaillez mieux',
+        subtitle: 'REVENUS INSTANTANÉS',
+        description: 'Suivez vos gains en temps réel et profitez de bonus exclusifs durant les heures de pointe.',
+        color: '#0EA5E9',
+        bg: '#F8FAFC',
     },
     {
         id: '3',
-        emoji: '🛵',
-        title: 'Livrez facilement',
-        subtitle: 'Navigation intégrée, suivi GPS et communication directe avec les clients.',
-        color: '#38BDF8', // Bleu plus clair
+        image: require('../../assets/2.jpg'),
+        title: 'Optimisez vos trajets',
+        subtitle: 'NAVIGATION INTELLIGENTE',
+        description: 'La meilleure technologie GPS pour vous guider rapidement vers vos clients. Moins d\'attente, plus de livraisons.',
+        color: '#0EA5E9',
+        bg: '#F0FDF4',
     },
 ];
 
@@ -46,9 +53,7 @@ const OnboardingScreen = ({ navigation }) => {
     const handleNext = async () => {
         if (currentIndex < slides.length - 1) {
             flatListRef.current?.scrollToIndex({ index: currentIndex + 1 });
-            setCurrentIndex(currentIndex + 1);
         } else {
-            // Marquer l'onboarding comme vu
             await AsyncStorage.setItem('driver_onboarding_seen', 'true');
             navigation.replace('Login');
         }
@@ -62,56 +67,53 @@ const OnboardingScreen = ({ navigation }) => {
     const renderSlide = ({ item, index }) => {
         return (
             <View style={[styles.slide, { width }]}>
-                <View style={[styles.emojiContainer, { backgroundColor: item.color + '15' }]}>
-                    <Text style={styles.emoji}>{item.emoji}</Text>
-                </View>
-                <Text style={styles.title}>{item.title}</Text>
-                <Text style={styles.subtitle}>{item.subtitle}</Text>
-            </View>
-        );
-    };
+                <Animated.View
+                    style={[
+                        styles.imageContainer,
+                        {
+                            backgroundColor: item.bg,
+                            transform: [{
+                                scale: scrollX.interpolate({
+                                    inputRange: [(index - 1) * width, index * width, (index + 1) * width],
+                                    outputRange: [0.8, 1, 0.8],
+                                })
+                            }]
+                        }
+                    ]}
+                >
+                    <Image
+                        source={typeof item.image === 'string' ? { uri: item.image } : item.image}
+                        style={styles.image}
+                        resizeMode="cover"
+                    />
+                </Animated.View>
 
-    const renderDots = () => {
-        return (
-            <View style={styles.dotsContainer}>
-                {slides.map((_, index) => {
-                    const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
-                    const dotWidth = scrollX.interpolate({
-                        inputRange,
-                        outputRange: [8, 24, 8],
-                        extrapolate: 'clamp',
-                    });
-                    const opacity = scrollX.interpolate({
-                        inputRange,
-                        outputRange: [0.4, 1, 0.4],
-                        extrapolate: 'clamp',
-                    });
-                    return (
-                        <Animated.View
-                            key={index}
-                            style={[
-                                styles.dot,
-                                {
-                                    width: dotWidth,
-                                    opacity,
-                                    backgroundColor: slides[currentIndex].color,
-                                },
-                            ]}
-                        />
-                    );
-                })}
+                <View style={styles.textContainer}>
+                    <Text style={[styles.slideSubtitle, { color: item.color }]}>{item.subtitle}</Text>
+                    <Text style={styles.slideTitle}>{item.title}</Text>
+                    <Text style={styles.slideDescription}>{item.description}</Text>
+                </View>
             </View>
         );
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             <StatusBar style="dark" />
 
-            {/* Skip Button */}
-            <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-                <Text style={styles.skipText}>Passer</Text>
-            </TouchableOpacity>
+            {/* Header: Logo & Skip */}
+            <View style={styles.header}>
+                <Image
+                    source={require('../../assets/logo.png')}
+                    style={styles.logo}
+                    resizeMode="contain"
+                />
+                {currentIndex !== slides.length - 1 && (
+                    <TouchableOpacity onPress={handleSkip}>
+                        <Text style={styles.skipText}>Passer</Text>
+                    </TouchableOpacity>
+                )}
+            </View>
 
             {/* Slides */}
             <FlatList
@@ -132,19 +134,46 @@ const OnboardingScreen = ({ navigation }) => {
                 }}
             />
 
-            {/* Dots */}
-            {renderDots()}
+            {/* Footer */}
+            <View style={styles.footer}>
+                {/* Dots */}
+                <View style={styles.dotsContainer}>
+                    {slides.map((_, index) => {
+                        const widthAnim = scrollX.interpolate({
+                            inputRange: [(index - 1) * width, index * width, (index + 1) * width],
+                            outputRange: [8, 24, 8],
+                            extrapolate: 'clamp',
+                        });
+                        return (
+                            <Animated.View
+                                key={index}
+                                style={[
+                                    styles.dot,
+                                    {
+                                        width: widthAnim,
+                                        backgroundColor: index === currentIndex ? slides[currentIndex].color : '#E2E8F0',
+                                    },
+                                ]}
+                            />
+                        );
+                    })}
+                </View>
 
-            {/* Next/Start Button */}
-            <TouchableOpacity
-                style={[styles.nextButton, { backgroundColor: slides[currentIndex].color }]}
-                onPress={handleNext}
-            >
-                <Text style={styles.nextText}>
-                    {currentIndex === slides.length - 1 ? 'Commencer' : 'Suivant'}
-                </Text>
-            </TouchableOpacity>
-        </SafeAreaView>
+                {/* Next Button */}
+                <TouchableOpacity
+                    style={[styles.nextButton, { backgroundColor: slides[currentIndex].color }]}
+                    onPress={handleNext}
+                >
+                    {currentIndex === slides.length - 1 ? (
+                        <Text style={styles.nextText}>COMMENCER</Text>
+                    ) : (
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Text style={styles.nextText}>SUIVANT</Text>
+                        </View>
+                    )}
+                </TouchableOpacity>
+            </View>
+        </View>
     );
 };
 
@@ -153,54 +182,79 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#FFFFFF',
     },
-    skipButton: {
-        position: 'absolute',
-        top: 60,
-        right: 24,
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 24,
+        paddingTop: 60,
         zIndex: 10,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
+    },
+    logo: {
+        width: 40,
+        height: 40,
     },
     skipText: {
-        color: '#64748B',
-        fontSize: 16,
-        fontWeight: '500',
+        color: '#94A3B8',
+        fontSize: 14,
+        fontWeight: '700',
+        letterSpacing: 1,
     },
     slide: {
         flex: 1,
         alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 40,
+        paddingTop: 40,
     },
-    emojiContainer: {
-        width: 160,
-        height: 160,
-        borderRadius: 80,
-        justifyContent: 'center',
+    imageContainer: {
+        width: width * 0.85,
+        height: width * 0.85,
+        borderRadius: 40,
+        overflow: 'hidden',
+        marginBottom: 40,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    image: {
+        width: '100%',
+        height: '100%',
+    },
+    textContainer: {
+        paddingHorizontal: 32,
         alignItems: 'center',
-        marginBottom: 48,
     },
-    emoji: {
-        fontSize: 80,
+    slideSubtitle: {
+        fontSize: 12,
+        fontWeight: '900',
+        letterSpacing: 4,
+        marginBottom: 12,
+        textTransform: 'uppercase',
     },
-    title: {
+    slideTitle: {
         fontSize: 28,
         fontWeight: '800',
-        color: '#1E293B',
+        color: '#0F172A',
         textAlign: 'center',
         marginBottom: 16,
+        lineHeight: 34,
     },
-    subtitle: {
+    slideDescription: {
         fontSize: 16,
         color: '#64748B',
         textAlign: 'center',
         lineHeight: 24,
     },
+    footer: {
+        paddingHorizontal: 24,
+        paddingBottom: 50,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
     dotsContainer: {
         flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 32,
     },
     dot: {
         height: 8,
@@ -208,21 +262,20 @@ const styles = StyleSheet.create({
         marginHorizontal: 4,
     },
     nextButton: {
-        marginHorizontal: 24,
-        marginBottom: 32,
-        paddingVertical: 18,
-        borderRadius: 16,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
+        paddingHorizontal: 32,
+        paddingVertical: 16,
+        borderRadius: 20,
+        shadowColor: '#0EA5E9',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
         shadowRadius: 12,
-        elevation: 5,
+        elevation: 8,
     },
     nextText: {
         color: '#FFFFFF',
-        fontSize: 18,
-        fontWeight: '700',
+        fontSize: 14,
+        fontWeight: '800',
+        letterSpacing: 2,
     },
 });
 

@@ -3,8 +3,11 @@ import { View, Text, TextInput, TouchableOpacity, Modal, Image, Alert, ActivityI
 
 import { XMarkIcon, ShieldCheckIcon, ClockIcon } from 'react-native-heroicons/outline';
 import { initiatePayment, checkPaymentStatus } from '../api/shwary';
+import { useStripe } from '@stripe/stripe-react-native';
+import { fetchPaymentIntentClientSecret } from '../api/stripe';
 
 const PaymentModal = ({ visible, onClose, operator, amount, onSubmit, defaultPhone }) => {
+    const { initPaymentSheet, presentPaymentSheet } = useStripe();
     const [phoneNumber, setPhoneNumber] = useState(defaultPhone || '');
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState('idle'); // idle, processing, success, error, waiting_confirmation
@@ -69,21 +72,51 @@ const PaymentModal = ({ visible, onClose, operator, amount, onSubmit, defaultPho
 
     const handlePayment = async () => {
         if (operator === 'visa') {
-            if (!cardNumber || !expiry || !cvc) {
-                Alert.alert('Erreur', 'Veuillez remplir tous les champs de la carte');
-                return;
-            }
             setLoading(true);
             setStatus('processing');
 
-            // Simulate Card Processing
-            setTimeout(() => {
+            try {
+                // 1. Fetch Client Secret from Backend
+                const clientSecret = await fetchPaymentIntentClientSecret(amount);
+
+                // 2. Initialize Payment Sheet
+                const { error: initError } = await initPaymentSheet({
+                    paymentIntentClientSecret: clientSecret,
+                    merchantDisplayName: 'C-Food',
+                    defaultBillingDetails: {
+                        phone: phoneNumber || defaultPhone,
+                    }
+                });
+
+                if (initError) {
+                    throw new Error(initError.message);
+                }
+
+                // 3. Present Payment Sheet
+                const { error: presentError } = await presentPaymentSheet();
+
+                if (presentError) {
+                    if (presentError.code === 'Canceled') {
+                        setLoading(false);
+                        setStatus('idle');
+                        return;
+                    }
+                    throw new Error(presentError.message);
+                }
+
+                // 4. Success
                 finalizeSuccess({
-                    id: 'card-' + Date.now(),
+                    id: 'stripe-' + Date.now(),
                     status: 'completed',
                     paymentVerificationStatus: 'paid'
                 });
-            }, 3000);
+
+            } catch (error) {
+                console.error('Stripe Flow Error:', error);
+                setLoading(false);
+                setStatus('error');
+                Alert.alert('Erreur Stripe', error.message);
+            }
             return;
         }
 
@@ -300,46 +333,14 @@ const PaymentModal = ({ visible, onClose, operator, amount, onSubmit, defaultPho
                                 </View>
 
                                 {operator === 'visa' ? (
-                                    /* Card Inputs */
-                                    <View className="mb-6 space-y-4">
-                                        <View>
-                                            <Text className="text-gray-700 font-bold mb-2 ml-1">Numéro de carte</Text>
-                                            <TextInput
-                                                className="bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-gray-900 font-bold"
-                                                value={cardNumber}
-                                                onChangeText={setCardNumber}
-                                                placeholder="0000 0000 0000 0000"
-                                                placeholderTextColor="#9CA3AF"
-                                                keyboardType="numeric"
-                                                maxLength={19}
-                                            />
-                                        </View>
-                                        <View className="flex-row space-x-4">
-                                            <View className="flex-1">
-                                                <Text className="text-gray-700 font-bold mb-2 ml-1">Expiration</Text>
-                                                <TextInput
-                                                    className="bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-gray-900 font-bold"
-                                                    value={expiry}
-                                                    onChangeText={setExpiry}
-                                                    placeholder="MM/YY"
-                                                    placeholderTextColor="#9CA3AF"
-                                                    maxLength={5}
-                                                />
-                                            </View>
-                                            <View className="flex-1">
-                                                <Text className="text-gray-700 font-bold mb-2 ml-1">CVC</Text>
-                                                <TextInput
-                                                    className="bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-gray-900 font-bold"
-                                                    value={cvc}
-                                                    onChangeText={setCvc}
-                                                    placeholder="123"
-                                                    placeholderTextColor="#9CA3AF"
-                                                    keyboardType="numeric"
-                                                    maxLength={3}
-                                                    secureTextEntry
-                                                />
-                                            </View>
-                                        </View>
+                                    /* Stripe Payment Sheet Info */
+                                    <View className="mb-6 p-4 bg-blue-50 rounded-2xl border border-blue-100 items-center">
+                                        <Text className="text-blue-800 font-bold text-center">
+                                            Vous allez être redirigé vers le paiement sécurisé par carte.
+                                        </Text>
+                                        <Text className="text-blue-600 text-xs text-center mt-2">
+                                            Visa, MasterCard, American Express supportés.
+                                        </Text>
                                     </View>
                                 ) : (
                                     /* Phone Input */

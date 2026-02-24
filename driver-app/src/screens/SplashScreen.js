@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Animated, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, Animated, StyleSheet, Dimensions, Image } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -57,9 +57,11 @@ const SplashScreen = ({ navigation }) => {
                     },
                 ]}
             >
-                <View style={styles.logoCircle}>
-                    <Text style={styles.logoEmoji}>🛵</Text>
-                </View>
+                <Image
+                    source={require('../../assets/logo.png')}
+                    style={styles.logoImage}
+                    resizeMode="contain"
+                />
             </Animated.View>
 
             {/* Texte animé */}
@@ -94,21 +96,9 @@ const styles = StyleSheet.create({
     logoContainer: {
         marginBottom: 24,
     },
-    logoCircle: {
-        width: 120,
-        height: 120,
-        backgroundColor: '#0EA5E9',
-        borderRadius: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#0EA5E9',
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.35,
-        shadowRadius: 20,
-        elevation: 15,
-    },
-    logoEmoji: {
-        fontSize: 56,
+    logoImage: {
+        width: 160,
+        height: 160,
     },
     title: {
         fontSize: 42,

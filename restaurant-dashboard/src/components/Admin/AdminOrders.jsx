@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, query, orderBy, doc, updateDoc, serverTimestamp, where, increment } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
+import { sendPushNotification } from '../../services/notificationService';
 
 const AdminOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -58,6 +59,28 @@ const AdminOrders = () => {
             }
 
             setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+
+            // 🔔 Send Push Notification to Customer
+            if (order?.userId) {
+                const userRef = doc(db, "user", order.userId);
+                const userSnap = await getDoc(userRef);
+                const userData = userSnap.data();
+
+                if (userData?.expoPushToken) {
+                    let title = "Mise à jour de votre commande";
+                    let body = "";
+
+                    switch (newStatus) {
+                        case 'accepted': body = "Votre commande est acceptée ! 🍽️"; break;
+                        case 'preparing': body = "Votre repas passe en cuisine ! 👨‍🍳"; break;
+                        case 'picked_up': body = "Le livreur a récupéré votre commande ! 🛵"; break;
+                        case 'delivered': body = "Commande livrée ! Bon appétit ! 🎉"; break;
+                        case 'cancelled': body = "Désolé, votre commande a été annulée. ❌"; title = "Commande annulée"; break;
+                        default: body = `Le statut de votre commande est : ${newStatus}`;
+                    }
+                    await sendPushNotification(userData.expoPushToken, title, body, { orderId });
+                }
+            }
         } catch (error) { console.error(error); }
     };
 
@@ -82,6 +105,23 @@ const AdminOrders = () => {
 
             setShowDriverModal(false);
             setSelectedOrder(null);
+
+            // 🔔 Send Push Notification to Customer about assigned Driver
+            const order = orders.find(o => o.id === orderId);
+            if (order?.userId) {
+                const userRef = doc(db, "user", order.userId);
+                const userSnap = await getDoc(userRef);
+                const userData = userSnap.data();
+
+                if (userData?.expoPushToken) {
+                    await sendPushNotification(
+                        userData.expoPushToken,
+                        "Livreur assigné ! 🛵",
+                        `${driver?.firstName || 'Un livreur'} est en route pour récupérer votre commande.`,
+                        { orderId, driverId }
+                    );
+                }
+            }
         } catch (error) { console.error('Erreur assignation livreur:', error); }
     };
 

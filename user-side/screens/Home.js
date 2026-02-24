@@ -253,14 +253,39 @@ const Home = () => {
 
         <TouchableOpacity
           onPress={() => navigation.navigate("Profile")}
-          className="bg-gray-50 p-1.5 rounded-full border border-gray-100 shadow-sm"
+          className="bg-gray-50 p-1 rounded-full border border-gray-100 shadow-sm"
         >
           <Image
-            source={{ uri: "https://links.papareact.com/wru" }}
+            source={{ uri: dbUser?.photoURL || "https://cdn-icons-png.flaticon.com/512/4140/4140048.png" }}
             className="h-10 w-10 bg-gray-300 rounded-full"
           />
         </TouchableOpacity>
       </View>
+
+      {/* --- REWARDS SUMMARY CHIPS --- */}
+      <Animatable.View animation="fadeInDown" duration={1000} delay={100} className="px-5 pb-3 bg-white rounded-b-[30px] shadow-sm -mt-1 flex-row space-x-2">
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Wallet')}
+          className="bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 flex-row items-center"
+        >
+          <View className="bg-emerald-500 rounded-full p-1 mr-2">
+            <View className="w-1 h-1 bg-white rounded-full" />
+          </View>
+          <Text className="text-emerald-700 font-bold text-xs">
+            {Number(dbUser?.walletBalance || 0).toLocaleString()} FC
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Fidelity')}
+          className="bg-amber-50 px-3 py-1.5 rounded-full border border-amber-100 flex-row items-center"
+        >
+          <Text className="text-amber-600 font-bold text-xs mr-1">🏆</Text>
+          <Text className="text-amber-700 font-bold text-xs">
+            {dbUser?.loyaltyPoints || 0} pts
+          </Text>
+        </TouchableOpacity>
+      </Animatable.View>
 
       {/* --- GREETING & SEARCH --- */}
       <View className="px-5 mt-4">

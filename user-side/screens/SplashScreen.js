@@ -53,7 +53,7 @@ const SplashScreen = ({ navigation }) => {
 
         const timer = setTimeout(async () => {
             await checkOnboardingStatus();
-        }, 2500);
+        }, 4000); // 🕒 Increased length from 2500ms to 4000ms
 
         return () => clearTimeout(timer);
     }, []);
@@ -78,16 +78,9 @@ const SplashScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+            <StatusBar barStyle="light-content" backgroundColor="#000000" />
 
-            {/* Ripple Effect Background */}
-            <Animated.View style={[
-                styles.ripple,
-                {
-                    opacity: rippleOpacity,
-                    transform: [{ scale: rippleScale }]
-                }
-            ]} />
+            {/* Ripple Effect Background removed for cleaner black look */}
 
             {/* Logo Container */}
             <Animated.View style={[
@@ -97,15 +90,15 @@ const SplashScreen = ({ navigation }) => {
                     transform: [{ scale: scaleAnim }]
                 }
             ]}>
-                {/* Replaced Text Logo with Image if available, or styled text */}
-                <View style={styles.logoCircle}>
-                    <Text style={styles.logoText}>C</Text>
-                </View>
+                <Image
+                    source={require('../assets/logo.png')}
+                    style={styles.logoImage}
+                    resizeMode="contain"
+                />
             </Animated.View>
 
             {/* Branding Text */}
             <Animated.View style={[styles.textContainer, { opacity: fadeAnim }]}>
-                <Text style={styles.brandName}>C-Food</Text>
                 <Text style={styles.tagline}>Livraison rapide, saveurs infinies</Text>
             </Animated.View>
 
@@ -123,7 +116,7 @@ const SplashScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#000000', // ⚫ Entirely Black
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -146,19 +139,9 @@ const styles = StyleSheet.create({
         shadowRadius: 20,
         elevation: 15,
     },
-    logoCircle: {
-        width: 100,
-        height: 100,
-        borderRadius: 30, // Squircle shape common in modern apps
-        backgroundColor: '#77b5fe',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transform: [{ rotate: '-10deg' }]
-    },
-    logoText: {
-        fontSize: 40,
-        fontWeight: '900',
-        color: 'white',
+    logoImage: {
+        width: 150,
+        height: 150,
     },
     textContainer: {
         alignItems: 'center',
@@ -172,11 +155,12 @@ const styles = StyleSheet.create({
     },
     tagline: {
         fontSize: 14,
-        color: '#9CA3AF',
+        color: '#E5E7EB', // Lighter grey for black background
         marginTop: 5,
         letterSpacing: 2,
         textTransform: 'uppercase',
-        fontWeight: '600'
+        fontWeight: '600',
+        textAlign: 'center',
     },
     loaderContainer: {
         position: 'absolute',

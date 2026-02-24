@@ -22,9 +22,11 @@ import {
     onSnapshot,
     serverTimestamp,
     doc,
-    updateDoc
+    updateDoc,
+    getDoc
 } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
+import { sendPushNotification } from '../utils/pushNotifications';
 
 const ChatScreen = () => {
     const route = useRoute();
@@ -80,6 +82,27 @@ const ChatScreen = () => {
                 lastMessageSenderType: 'driver',
                 lastMessageSenderName: `${driverProfile?.firstName || ''} ${driverProfile?.lastName || ''}`.trim() || 'Livreur'
             });
+
+            // 🔔 Send Push Notification to Customer
+            if (clientId) {
+                try {
+                    const clientRef = doc(db, "user", clientId);
+                    const clientSnap = await getDoc(clientRef);
+                    if (clientSnap.exists()) {
+                        const clientData = clientSnap.data();
+                        if (clientData.expoPushToken) {
+                            await sendPushNotification(
+                                clientData.expoPushToken,
+                                `Message de votre livreur`,
+                                newMessage.trim(),
+                                { orderId, senderId: driverProfile?.id }
+                            );
+                        }
+                    }
+                } catch (notifError) {
+                    console.error("Error sending notification to client:", notifError);
+                }
+            }
 
             setNewMessage('');
         } catch (error) {

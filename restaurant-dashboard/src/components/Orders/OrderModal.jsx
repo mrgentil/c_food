@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import DishInfo from "./DishInfo";
 import { db } from "../../firebase/firebase";
-import { collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, updateDoc, getDoc } from "firebase/firestore";
 import StatusButton from "./StatusButton";
+import { sendPushNotification } from "../../services/notificationService";
 
 const OrderModal = ({ setIsActive, selectedOrder }) => {
   const [dishes, setDishes] = useState([]);
-  const [status, setStatus] = useState("PENDING");
+  const [status, setStatus] = useState(selectedOrder.status || "PENDING");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const getDishId = async () => {
@@ -27,13 +29,57 @@ const OrderModal = ({ setIsActive, selectedOrder }) => {
       });
     };
 
-    const orderRef = doc(db, "orders", selectedOrder.id);
-    updateDoc(orderRef, {
-      status: status
-    });
-
     getDishId();
-  }, [status]);
+  }, []);
+
+  const handleStatusChange = async (newStatus) => {
+    setLoading(true);
+    try {
+      const orderRef = doc(db, "orders", selectedOrder.id);
+      await updateDoc(orderRef, {
+        status: newStatus,
+        updatedAt: new Date()
+      });
+
+      setStatus(newStatus);
+
+      // Send Push Notification to Customer
+      if (selectedOrder.userId) {
+        const userRef = doc(db, "user", selectedOrder.userId);
+        const userSnap = await getDoc(userRef);
+        const userData = userSnap.data();
+
+        if (userData?.expoPushToken) {
+          let title = "Mise à jour de votre commande";
+          let body = "";
+
+          switch (newStatus) {
+            case "ACCEPTED":
+              body = "Bonne nouvelle ! Le restaurant a accepté votre commande. 🍽️";
+              break;
+            case "PREPARING":
+              body = "C'est en préparation ! Votre repas est en train d'être cuisiné. 👨‍🍳";
+              break;
+            case "READY":
+              body = "Prêt ! Votre commande attend le livreur. 🛵";
+              break;
+            case "DECLINED":
+              body = "Désolé, le restaurant ne peut pas honorer votre commande pour le moment. ❌";
+              title = "Commande refusée";
+              break;
+            default:
+              body = `Le statut de votre commande est maintenant : ${newStatus}`;
+          }
+
+          await sendPushNotification(userData.expoPushToken, title, body, { orderId: selectedOrder.id });
+        }
+      }
+    } catch (error) {
+      console.error("Error updating status or sending notification:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   let statusText, statusColor;
   if (status === "PENDING") {
@@ -137,18 +183,20 @@ const OrderModal = ({ setIsActive, selectedOrder }) => {
                   <>
                     <div className="w-2/4">
                       <button
-                        onClick={() => setStatus("ACCEPTED")}
-                        className=" w-11/12 my-3 cursor-pointer items-center gap-x-2 text-gray-700 font-bold text-base p-2 rounded-xl  hover:bg-green-200 active:bg-green-400 duration-150 bg-green-200 border-l-4 border-b-4 border-green-500"
+                        onClick={() => handleStatusChange("ACCEPTED")}
+                        disabled={loading}
+                        className={`w-11/12 my-3 cursor-pointer items-center gap-x-2 text-gray-700 font-bold text-base p-2 rounded-xl border-l-4 border-b-4 duration-150 ${loading ? 'bg-gray-200 border-gray-400 opacity-50' : 'bg-green-200 border-green-500 hover:bg-green-300'}`}
                       >
-                        Accept
+                        {loading ? '...' : 'Accept'}
                       </button>
                     </div>
                     <div className="w-2/4">
                       <button
-                        onClick={() => { setStatus("DECLINED") }}
-                        className=" w-11/12 my-3 cursor-pointer items-center gap-x-2 text-gray-700 font-bold text-base p-2 rounded-xl  hover:bg-red-200 active:bg-red-400 duration-150 bg-red-200 border-l-4 border-b-4 border-red-500"
+                        onClick={() => handleStatusChange("DECLINED")}
+                        disabled={loading}
+                        className={`w-11/12 my-3 cursor-pointer items-center gap-x-2 text-gray-700 font-bold text-base p-2 rounded-xl border-l-4 border-b-4 duration-150 ${loading ? 'bg-gray-200 border-gray-400 opacity-50' : 'bg-red-200 border-red-500 hover:bg-red-300'}`}
                       >
-                        Decline
+                        {loading ? '...' : 'Decline'}
                       </button>
                     </div>
                   </>
@@ -156,20 +204,22 @@ const OrderModal = ({ setIsActive, selectedOrder }) => {
                 {status === "ACCEPTED" && (
                   <div className="w-2/4 mx-auto">
                     <button
-                      onClick={() => setStatus("PREPARING")}
-                      className=" w-11/12 my-3 cursor-pointer items-center gap-x-2 text-gray-700 font-bold text-base p-2 rounded-xl  hover:bg-yellow-200 active:bg-yellow-400 duration-150 bg-yellow-200 border-l-4 border-b-4 border-yellow-500"
+                      onClick={() => handleStatusChange("PREPARING")}
+                      disabled={loading}
+                      className={`w-11/12 my-3 cursor-pointer items-center gap-x-2 text-gray-700 font-bold text-base p-2 rounded-xl border-l-4 border-b-4 duration-150 ${loading ? 'bg-gray-200 border-gray-400 opacity-50' : 'bg-yellow-200 border-yellow-500 hover:bg-yellow-300'}`}
                     >
-                      Preparing Food
+                      {loading ? '...' : 'Preparing Food'}
                     </button>
                   </div>
                 )}
                 {status === "PREPARING" && (
                   <div className="w-2/4 mx-auto">
                     <button
-                      onClick={() => { setStatus("READY") }}
-                      className=" w-11/12 my-3 cursor-pointer items-center gap-x-2 text-gray-700 font-bold text-base p-2 rounded-xl  hover:bg-green-200 active:bg-green-400 duration-150 bg-green-200 border-l-4 border-b-4 border-green-500"
+                      onClick={() => handleStatusChange("READY")}
+                      disabled={loading}
+                      className={`w-11/12 my-3 cursor-pointer items-center gap-x-2 text-gray-700 font-bold text-base p-2 rounded-xl border-l-4 border-b-4 duration-150 ${loading ? 'bg-gray-200 border-gray-400 opacity-50' : 'bg-green-200 border-green-500 hover:bg-green-300'}`}
                     >
-                      Ready for Pickup
+                      {loading ? '...' : 'Ready for Pickup'}
                     </button>
                   </div>)}
               </div>

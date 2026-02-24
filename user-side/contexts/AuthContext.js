@@ -8,8 +8,9 @@ import {
   GoogleAuthProvider,
 } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { ROLES } from "../constants/roles";
+import { registerForPushNotificationsAsync } from "../utils/notificationHelper";
 
 const UserContext = createContext();
 
@@ -36,6 +37,22 @@ export const AuthContextProvder = ({ children }) => {
             const userData = docSnap.data();
             setDbUser(userData);
             console.log("✅ DB USER loaded:", userData.firstName);
+
+            // Register for Push Notifications
+            setTimeout(async () => {
+              try {
+                const token = await registerForPushNotificationsAsync();
+                if (token && userData.expoPushToken !== token) {
+                  await updateDoc(userRef, {
+                    expoPushToken: token,
+                    updatedAt: new Date()
+                  });
+                  console.log("🚀 Push token updated in DB");
+                }
+              } catch (tokenError) {
+                console.error("❌ Error registering push token:", tokenError);
+              }
+            }, 3000); // Small delay to ensure everything is ready
           } else {
             console.log("⚠️ User authenticated but no Firestore doc found. Redirecting to UserDetails...");
             setDbUser(null);

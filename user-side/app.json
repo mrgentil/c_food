@@ -12,6 +12,13 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow $(Food Delivery App) to use your location."
         }
+      ],
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.bedi.usersidefoodappv2",
+          "enableGooglePay": true
+        }
       ]
     ],
     "splash": {
@@ -23,7 +30,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bedi.usersidefoodappv2"
     },
     "android": {
       "adaptiveIcon": {

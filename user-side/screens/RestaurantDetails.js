@@ -12,6 +12,7 @@ import {
 import * as Animatable from "react-native-animatable";
 import DishRow from "../components/DishRow";
 import BasketIcon from "../components/BasketIcon";
+import RestaurantRating from "../components/RestaurantRating";
 import { useDispatch } from "react-redux";
 import { setRestaurant } from "../features/restaurantSlice";
 import { db } from "../firebase";
@@ -22,6 +23,8 @@ import {
   where,
   getDoc,
   doc,
+  orderBy,
+  limit,
 } from "firebase/firestore";
 import { StatusBar } from "expo-status-bar";
 
@@ -31,6 +34,7 @@ const RestaurantDetails = () => {
   const [dishes, setDishes] = useState([]);
   const [restaurantInfo, setRestaurantInfo] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [recentReviews, setRecentReviews] = useState([]);
 
   const {
     params: { id },
@@ -42,7 +46,7 @@ const RestaurantDetails = () => {
     const initData = async () => {
       setLoading(true);
       try {
-        await getDishData();
+        await Promise.all([getDishData(), getRecentReviews()]);
 
         const docRef = doc(db, "restaurants", restaurantUid);
         const docSnap = await getDoc(docRef);
@@ -88,6 +92,24 @@ const RestaurantDetails = () => {
       setDishes(item);
     } catch (error) {
       console.error("Error fetching dishes:", error);
+    }
+  };
+
+  const getRecentReviews = async () => {
+    const ratingsRef = collection(db, "ratings");
+    const q = query(
+      ratingsRef,
+      where("restaurantId", "==", restaurantUid),
+      orderBy("createdAt", "desc"),
+      limit(3)
+    );
+
+    try {
+      const querySnapshot = await getDocs(q);
+      const reviews = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setRecentReviews(reviews);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
     }
   };
 
@@ -142,10 +164,7 @@ const RestaurantDetails = () => {
         <Animatable.View animation="fadeInUp" duration={800} delay={200} className="bg-white -mt-12 rounded-t-3xl px-5 pt-6 pb-2 shadow-inner">
           <View className="flex-row justify-between items-start">
             <Text className="text-3xl font-extrabold text-gray-900 flex-1 mr-2">{restaurantInfo.name}</Text>
-            <View className="bg-blue-50 px-3 py-1.5 rounded-xl flex-row items-center border border-blue-100 shadow-sm">
-              <Text className="text-blue-500 font-bold mr-1 text-base">{restaurantInfo.rating}</Text>
-              <StarIcon color="#77b5fe" size={16} />
-            </View>
+            <RestaurantRating restaurantId={restaurantUid} size="large" />
           </View>
 
           <View className="flex-row items-center space-x-2 my-2 mt-3">
@@ -168,12 +187,27 @@ const RestaurantDetails = () => {
             {restaurantInfo.description}
           </Text>
 
-          <TouchableOpacity className="flex-row items-center space-x-2 p-4 border border-gray-100 rounded-2xl bg-gray-50 mt-5 active:bg-gray-100">
-            <StarIcon color="gray" opacity={0.5} size={20} />
-            <Text className="text-md font-bold text-gray-700 flex-1">
-              Notez votre expérience
-            </Text>
-            <ChevronRightIcon color="#77b5fe" />
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Reviews', { restaurantId: restaurantUid, restaurantName: restaurantInfo.name })}
+            className="flex-row items-center space-x-2 p-4 border border-gray-100 rounded-2xl bg-gray-50 mt-5 active:bg-gray-100"
+          >
+            <StarIcon color="#FBBF24" size={20} />
+            <View className="flex-1">
+              <Text className="text-md font-bold text-gray-700">
+                Avis des clients
+              </Text>
+              {recentReviews.length > 0 ? (
+                <Text className="text-gray-400 text-xs italic" numberOfLines={1}>
+                  "{recentReviews[0].comment || 'Super expérience !'}"
+                </Text>
+              ) : (
+                <Text className="text-gray-400 text-xs">Notez votre expérience</Text>
+              )}
+            </View>
+            <View className="flex-row items-center">
+              <Text className="text-[#77b5fe] font-bold text-xs mr-1">Voir tout</Text>
+              <ChevronRightIcon color="#77b5fe" size={16} />
+            </View>
           </TouchableOpacity>
         </Animatable.View>
 

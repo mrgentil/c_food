@@ -6,6 +6,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase/firebase';
+import { registerForPushNotificationsAsync } from '../utils/notificationHelper';
 
 const AuthContext = createContext({});
 
@@ -27,6 +28,22 @@ export const AuthProvider = ({ children }) => {
                     if (profile.role === 'driver') {
                         setUser(firebaseUser);
                         setDriverProfile({ id: userSnap.id, ...profile });
+
+                        // Register for Push Notifications
+                        setTimeout(async () => {
+                            try {
+                                const token = await registerForPushNotificationsAsync();
+                                if (token && profile.expoPushToken !== token) {
+                                    await updateDoc(userRef, {
+                                        expoPushToken: token,
+                                        updatedAt: new Date()
+                                    });
+                                    console.log("🚀 Driver Push token updated in DB");
+                                }
+                            } catch (tokenError) {
+                                console.error("❌ Error registering driver push token:", tokenError);
+                            }
+                        }, 3000);
                     } else {
                         // Pas un livreur, déconnecter
                         await firebaseSignOut(auth);

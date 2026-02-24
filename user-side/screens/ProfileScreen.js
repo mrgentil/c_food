@@ -69,7 +69,7 @@ const ProfileScreen = () => {
     },
     {
       id: 'wallet',
-      title: 'Mon Portefeuille',
+      title: `Mon Portefeuille (${Number(userData?.walletBalance || 0).toLocaleString()} FC)`,
       icon: <WalletIcon size={24} color="#10B981" />,
       onPress: () => navigation.navigate('Wallet'),
       bgColor: 'bg-emerald-50'
@@ -90,7 +90,7 @@ const ProfileScreen = () => {
     },
     {
       id: 'fidelity',
-      title: 'Points de Fidélité',
+      title: `Points de Fidélité (${userData?.loyaltyPoints || 0} pts)`,
       icon: <CurrencyDollarIcon size={24} color="#F59E0B" />,
       onPress: () => navigation.navigate('Fidelity'),
       bgColor: 'bg-yellow-50'

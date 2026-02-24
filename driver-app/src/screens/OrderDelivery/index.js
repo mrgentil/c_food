@@ -24,12 +24,15 @@ import {
   where,
   query,
   getDocs,
+  getDoc,
   serverTimestamp,
   onSnapshot,
+  increment,
 } from "firebase/firestore";
 import { db } from "../../../firebase/firebase";
 import { useAuth } from "../../contexts/AuthContext";
 import * as ImagePicker from 'expo-image-picker';
+import { sendPushNotification } from "../../utils/pushNotifications";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyCi-MWuhMrs1DfJqTycPWS8N9KorPuAs-0";
 
@@ -243,11 +246,48 @@ const OrderDelivery = ({ route }) => {
         const pointsAwarded = Math.floor((order.total || 0) / 1000);
         if (pointsAwarded > 0) {
           const userRef = doc(db, "user", order.userId);
-          const { increment } = require("firebase/firestore");
           await updateDoc(userRef, {
             loyaltyPoints: increment(pointsAwarded)
           });
           console.log(`🏆 Awarded ${pointsAwarded} points to user ${order.userId}`);
+        }
+      }
+
+      // 🔔 Send Push Notification to Customer
+      if (order.userId) {
+        try {
+          const userRef = doc(db, "user", order.userId);
+          const userSnap = await getDoc(userRef);
+          const userData = userSnap.data();
+
+          if (userData?.expoPushToken) {
+            let title = "Suivi de votre livraison";
+            let body = "";
+
+            switch (newStatus) {
+              case 'picked_up':
+                body = "Votre commande a été récupérée ! Le livreur est en route. 🛵";
+                break;
+              case 'arrived_at_customer':
+                body = "Le livreur est arrivé à votre adresse ! 📍";
+                break;
+              case 'delivered':
+                body = "Votre commande a été livrée. Bon appétit ! 🎉";
+                title = "Commande livrée";
+                break;
+              case 'arrived_at_restaurant':
+                body = "Le livreur est arrivé au restaurant. 🏢";
+                break;
+              default:
+                body = `Le livreur a mis à jour votre commande : ${newStatus}`;
+            }
+
+            if (body) {
+              await sendPushNotification(userData.expoPushToken, title, body, { orderId: order.id });
+            }
+          }
+        } catch (notifError) {
+          console.error("Error sending driver notification:", notifError);
         }
       }
     } catch (e) {
