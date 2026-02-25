@@ -2,12 +2,12 @@ import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { ClockIcon, FireIcon } from "react-native-heroicons/solid";
 import * as Animatable from "react-native-animatable";
-import { useNavigation } from "@react-navigation/native";
+import { navigationRef } from "../App";
 import { db } from "../firebase";
 import { collection, query, where, getDocs, Timestamp } from "firebase/firestore";
 
 const FlashDeals = () => {
-    const navigation = useNavigation();
+    // We use navigationRef.current directly instead of useNavigation() for React 19 stability
     const [deals, setDeals] = useState([]);
     const [loading, setLoading] = useState(true);
     const [timeLeft, setTimeLeft] = useState(0);
@@ -85,7 +85,7 @@ const FlashDeals = () => {
 
     const handleDealPress = (deal) => {
         // Navigate to restaurant with the dish highlighted
-        navigation.navigate('Restaurant', {
+        navigationRef.current?.navigate('Restaurant', {
             id: deal.restaurantId,
             highlightDishId: deal.dishId
         });

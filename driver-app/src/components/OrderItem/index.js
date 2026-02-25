@@ -1,9 +1,12 @@
 import { StyleSheet, Text, View, Image, Pressable } from "react-native";
 import { Entypo } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import * as navigationUtils from "../../utils/navigationUtils";
+
 
 const OrderItem = ({ order }) => {
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
+
   return (
     <Pressable
       style={{
@@ -14,8 +17,9 @@ const OrderItem = ({ order }) => {
         borderRadius: 12,
       }}
       onPress={() =>
-        navigation.navigate("OrdersDeliveryScreen", { order: order })
+        navigationUtils.navigate("OrdersDeliveryScreen", { order: order })
       }
+
     >
       <Image
         source={{ uri: order.restaurantImage }}

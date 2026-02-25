@@ -3,6 +3,8 @@ import { StarIcon, ClockIcon } from "react-native-heroicons/solid";
 import { HeartIcon } from "react-native-heroicons/solid";
 import { HeartIcon as HeartOutline } from "react-native-heroicons/outline";
 import { useNavigation } from "@react-navigation/native";
+import * as navigationUtils from "../utils/navigationUtils";
+
 import RestaurantRating from "./RestaurantRating";
 import { useState, useEffect } from "react";
 import { UserAuth } from "../contexts/AuthContext";
@@ -22,7 +24,8 @@ const RestaurantCardHero = ({
     maxDeliveryTime,
     isTopRated = false,
 }) => {
-    const navigation = useNavigation();
+    // const navigation = useNavigation();
+
     const { user } = UserAuth();
     const [isFavorite, setIsFavorite] = useState(false);
     const DEFAULT_IMAGE = "https://i.postimg.cc/qvhzT8XP/pastry.jpg";
@@ -71,8 +74,9 @@ const RestaurantCardHero = ({
     return (
         <Pressable
             onPress={() => {
-                navigation.navigate("Restaurant", { id });
+                navigationUtils.navigate("Restaurant", { id });
             }}
+
             className="mr-4 bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 mb-2 relativ"
             style={{ width: width * 0.85 }}
         >

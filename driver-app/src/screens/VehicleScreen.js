@@ -8,9 +8,10 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import * as ImagePicker from 'expo-image-picker';
 
-const VehicleScreen = () => {
+const VehicleScreen = ({ navigation }) => {
     const { driverProfile, refreshProfile } = useAuth();
-    const navigation = useNavigation();
+    // const navigation = useNavigation();
+
     const [vehicleType, setVehicleType] = useState(driverProfile?.vehicleType || 'moto');
     const [plateNumber, setPlateNumber] = useState(driverProfile?.plateNumber || '');
     const [loading, setLoading] = useState(false);

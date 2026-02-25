@@ -36,7 +36,7 @@ import { sendPushNotification } from "../../utils/pushNotifications";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyCi-MWuhMrs1DfJqTycPWS8N9KorPuAs-0";
 
-const OrderDelivery = ({ route }) => {
+const OrderDelivery = ({ navigation, route }) => {
   const { order } = route.params;
   const { driverProfile } = useAuth();
   const [driverLocation, setDriverLocation] = useState(null);
@@ -49,7 +49,7 @@ const OrderDelivery = ({ route }) => {
   const [uploadingProof, setUploadingProof] = useState(false);
   const [locationWatcher, setLocationWatcher] = useState(null);
 
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
   const { width, height } = useWindowDimensions();
 
   const restaurantLocation = {

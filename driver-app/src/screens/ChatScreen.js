@@ -28,10 +28,11 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { sendPushNotification } from '../utils/pushNotifications';
 
-const ChatScreen = () => {
-    const route = useRoute();
-    const navigation = useNavigation();
+const ChatScreen = ({ navigation, route }) => {
+    // const route = useRoute();
+    // const navigation = useNavigation();
     const { orderId, clientName, clientId } = route.params;
+
     const { driverProfile } = useAuth();
 
     const [messages, setMessages] = useState([]);

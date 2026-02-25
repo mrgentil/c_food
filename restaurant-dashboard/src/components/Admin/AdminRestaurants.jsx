@@ -20,7 +20,7 @@ const AdminRestaurants = () => {
     // Modal
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentRestaurant, setCurrentRestaurant] = useState(null);
-    const [formData, setFormData] = useState({ name: '', genre: '', address: '', image: '', status: 'pending' });
+    const [formData, setFormData] = useState({ name: '', genre: '', address: '', image: '', status: 'pending', lat: 0, lng: 0 });
 
     // Menu Modal State
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -107,11 +107,13 @@ const AdminRestaurants = () => {
                 genre: restaurant.genre || '',
                 address: restaurant.address || '',
                 image: restaurant.image || '',
-                status: restaurant.status || 'pending'
+                status: restaurant.status || 'pending',
+                lat: restaurant.lat || 0,
+                lng: restaurant.lng || 0
             });
         } else {
             setCurrentRestaurant(null);
-            setFormData({ name: '', genre: '', address: '', image: '', status: 'pending' });
+            setFormData({ name: '', genre: '', address: '', image: '', status: 'pending', lat: 0, lng: 0 });
         }
         setIsModalOpen(true);
     };
@@ -300,9 +302,32 @@ const AdminRestaurants = () => {
                                 <input
                                     type="text"
                                     className="w-full rounded-xl border border-gray-200 bg-[#F4F7FE] py-3 px-4 font-medium text-[#2B3674] outline-none focus:border-[#4318FF] transition-all"
-                                    value={formData.address}
                                     onChange={e => setFormData({ ...formData, address: e.target.value })}
                                 />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-[#2B3674] mb-2 uppercase">Latitude</label>
+                                    <input
+                                        type="number"
+                                        step="any"
+                                        required
+                                        className="w-full rounded-xl border border-gray-200 bg-[#F4F7FE] py-3 px-4 font-medium text-[#2B3674] outline-none focus:border-[#4318FF] transition-all"
+                                        value={formData.lat}
+                                        onChange={e => setFormData({ ...formData, lat: parseFloat(e.target.value) || 0 })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-[#2B3674] mb-2 uppercase">Longitude</label>
+                                    <input
+                                        type="number"
+                                        step="any"
+                                        required
+                                        className="w-full rounded-xl border border-gray-200 bg-[#F4F7FE] py-3 px-4 font-medium text-[#2B3674] outline-none focus:border-[#4318FF] transition-all"
+                                        value={formData.lng}
+                                        onChange={e => setFormData({ ...formData, lng: parseFloat(e.target.value) || 0 })}
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-[#2B3674] mb-2 uppercase">Image du Restaurant</label>

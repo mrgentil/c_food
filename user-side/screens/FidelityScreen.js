@@ -4,10 +4,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { ArrowLeftIcon, TrophyIcon, GiftIcon } from 'react-native-heroicons/outline';
 import { useNavigation } from '@react-navigation/native';
+import { UserAuth } from '../contexts/AuthContext'; // Assuming UserAuth is exported from AuthContext
 
-const FidelityScreen = () => {
-    const navigation = useNavigation();
-    const { dbUser } = require('../contexts/AuthContext').UserAuth();
+const FidelityScreen = ({ navigation }) => {
+    const { user } = UserAuth();
+    // const navigation = useNavigation();
+    const dbUser = user; // Using user data from context
+
 
     return (
         <View className="flex-1 bg-gray-50">

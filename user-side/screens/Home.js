@@ -1,5 +1,7 @@
 import { useState, useEffect, useLayoutEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
+import * as navigationUtils from "../utils/navigationUtils";
+
 import { UserAuth } from "../contexts/AuthContext";
 import { useLocation } from "../contexts/LocationContext";
 import {
@@ -53,7 +55,8 @@ const Home = () => {
   const { formattedAddress, districtName, location, setSelectedAddress, getCurrentLocation } = useLocation();
   const dispatch = useDispatch();
   const dbUser = useSelector(selectUser);
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
+
 
   const [restaurant, setRestaurant] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -252,8 +255,9 @@ const Home = () => {
         </View>
 
         <TouchableOpacity
-          onPress={() => navigation.navigate("Profile")}
+          onPress={() => navigationUtils.navigate("Profile")}
           className="bg-gray-50 p-1 rounded-full border border-gray-100 shadow-sm"
+
         >
           <Image
             source={{ uri: dbUser?.photoURL || "https://cdn-icons-png.flaticon.com/512/4140/4140048.png" }}
@@ -265,8 +269,9 @@ const Home = () => {
       {/* --- REWARDS SUMMARY CHIPS --- */}
       <Animatable.View animation="fadeInDown" duration={1000} delay={100} className="px-5 pb-3 bg-white rounded-b-[30px] shadow-sm -mt-1 flex-row space-x-2">
         <TouchableOpacity
-          onPress={() => navigation.navigate('Wallet')}
+          onPress={() => navigationUtils.navigate('Wallet')}
           className="bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 flex-row items-center"
+
         >
           <View className="bg-emerald-500 rounded-full p-1 mr-2">
             <View className="w-1 h-1 bg-white rounded-full" />
@@ -277,8 +282,9 @@ const Home = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => navigation.navigate('Fidelity')}
+          onPress={() => navigationUtils.navigate('Fidelity')}
           className="bg-amber-50 px-3 py-1.5 rounded-full border border-amber-100 flex-row items-center"
+
         >
           <Text className="text-amber-600 font-bold text-xs mr-1">🏆</Text>
           <Text className="text-amber-700 font-bold text-xs">

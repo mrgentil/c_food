@@ -1,6 +1,8 @@
 import { View, Text, Image, Pressable } from "react-native";
 import { MapPinIcon, StarIcon, SparklesIcon } from "react-native-heroicons/solid";
 import { useNavigation } from "@react-navigation/native";
+import * as navigationUtils from "../utils/navigationUtils";
+
 
 const RestaurantCard = ({
   id,
@@ -15,14 +17,14 @@ const RestaurantCard = ({
   minDeliveryTime,
   maxDeliveryTime,
 }) => {
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
   const DEFAULT_IMAGE = "https://i.postimg.cc/qvhzT8XP/pastry.jpg";
 
   return (
     <Pressable
       onPress={() => {
-        navigation.navigate("Restaurant", {
-          id,
+        navigationUtils.navigate("Restaurant", {
+          id, title, rating, description, address, genre, image, lat, lng
         });
       }}
       className="bg-white mr-4 rounded-3xl shadow-lg shadow-blue-100 w-64 border border-gray-100"

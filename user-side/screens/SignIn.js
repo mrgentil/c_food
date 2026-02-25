@@ -14,6 +14,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import * as navigationUtils from "../utils/navigationUtils";
+
 import { UserAuth } from "../contexts/AuthContext";
 import { EnvelopeIcon, LockClosedIcon, ExclamationCircleIcon, ArrowRightIcon } from "react-native-heroicons/outline";
 import { getFriendlyErrorMessage } from "../utils/firebaseErrors";
@@ -30,7 +32,8 @@ const SignIn = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [submissionError, setSubmissionError] = useState("");
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
+
   const { signInUser } = UserAuth();
 
   const validateEmail = (email) => {
@@ -203,7 +206,8 @@ const SignIn = () => {
                 <Text className="text-gray-500 font-medium">
                   Nouveau client ?
                 </Text>
-                <TouchableOpacity onPress={() => navigation.navigate("SignUp")} disabled={isLoading}>
+                <TouchableOpacity onPress={() => navigationUtils.navigate("SignUp")} disabled={isLoading}>
+
                   <Text className="text-[#0EA5E9] font-extrabold text-base">Créer un compte</Text>
                 </TouchableOpacity>
               </View>

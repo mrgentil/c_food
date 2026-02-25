@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { navigationRef } from "../App";
+
 import { ArrowLeftIcon, PaperAirplaneIcon } from 'react-native-heroicons/outline';
 import { StatusBar } from 'expo-status-bar';
 import * as Animatable from 'react-native-animatable';
@@ -30,9 +32,10 @@ import {
 import { UserAuth } from '../contexts/AuthContext';
 import { sendPushNotification } from '../utils/pushNotifications';
 
-const ChatScreen = () => {
-    const route = useRoute();
-    const navigation = useNavigation();
+const ChatScreen = ({ route, navigation }) => {
+    // const route = useRoute();
+    // const navigation = useNavigation();
+
     const { orderId, driverId, driverName, driverPhoto } = route.params;
     const { user } = UserAuth();
 

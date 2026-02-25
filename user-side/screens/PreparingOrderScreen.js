@@ -1,21 +1,26 @@
 import { View, Text, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { navigationRef } from "../App";
+
 import React, { useEffect } from "react";
 import * as Animatable from "react-native-animatable";
 import * as Progress from "react-native-progress";
 
-const PreparingOrderScreen = () => {
-  const navigation = useNavigation();
+const PreparingOrderScreen = ({ navigation, route }) => {
+  const nav = navigation || navigationRef.current;
+
+
 
   useEffect(() => {
     setTimeout(() => {
-      navigation.navigate("Main");
+      nav?.navigate("Main");
+
       Alert.alert("Commande Passée ! 🎉", "Votre commande a été créée avec succès !", [
         {
           text: "OK",
-          onPress: () => navigation.navigate("Main", { screen: "Orders" }),
+          onPress: () => nav?.navigate("Main", { screen: "Orders" }),
           style: "cancel",
+
         },
       ]);
     }, 4000);

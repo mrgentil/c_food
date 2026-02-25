@@ -11,6 +11,8 @@ import {
     Animated
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import * as navigationUtils from "../utils/navigationUtils";
+
 import { ArrowRightIcon } from "react-native-heroicons/solid";
 import * as Animatable from 'react-native-animatable';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -80,7 +82,8 @@ const OnboardingItem = ({ item, index }) => {
 };
 
 const OnboardingScreen = () => {
-    const navigation = useNavigation();
+    // const navigation = useNavigation();
+
     const [currentIndex, setCurrentIndex] = useState(0);
     const slidesRef = useRef(null);
     const scrollX = useRef(new Animated.Value(0)).current;
@@ -103,8 +106,9 @@ const OnboardingScreen = () => {
 
     const finishOnboarding = async () => {
         await AsyncStorage.setItem('hasSeenOnboarding', 'true');
-        navigation.replace('LocationPermission');
+        navigationUtils.navigate('LocationPermission');
     };
+
 
     // Interpolate background color for smooth transitions
     const backgroundColor = scrollX.interpolate({

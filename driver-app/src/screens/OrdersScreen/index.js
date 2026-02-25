@@ -12,6 +12,8 @@ import {
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import * as navigationUtils from "../../utils/navigationUtils";
+
 import { db } from "../../../firebase/firebase";
 import { useAuth } from "../../contexts/AuthContext";
 import * as Location from "expo-location";
@@ -32,14 +34,16 @@ const RDC_CITIES = [
   "Kikwit", "Bunia", "Uvira", "Beni", "Butembo"
 ];
 
-const OrdersScreen = () => {
+const OrdersScreen = ({ navigation }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [driverLocation, setDriverLocation] = useState(null);
   const [detectedCity, setDetectedCity] = useState(null);
   const [cityLoading, setCityLoading] = useState(true);
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
+
+
   const { driverProfile, toggleOnlineStatus } = useAuth(); // Added toggleOnlineStatus
 
   // 📍 Récupérer la position GPS et détecter la ville automatiquement
@@ -203,7 +207,8 @@ const OrdersScreen = () => {
       });
 
       // 2. Navigate immediately
-      navigation.navigate('OrdersDeliveryScreen', { order: { ...order, driverId: driverProfile.id } });
+      navigationUtils.navigate('OrdersDeliveryScreen', { order: { ...order, driverId: driverProfile.id } });
+
 
     } catch (error) {
       console.error("Error accepting order:", error);
@@ -242,8 +247,9 @@ const OrdersScreen = () => {
       <View style={[styles.card, isMyOrder && styles.cardActive]}>
         {/* Changed to View to handle separate click areas */}
         <TouchableOpacity
-          onPress={() => navigation.navigate('OrdersDeliveryScreen', { order })}
+          onPress={() => navigationUtils.navigate('OrdersDeliveryScreen', { order })}
           style={{ flex: 1 }}
+
         >
           <View style={styles.cardHeader}>
             <View style={[styles.iconContainer, isMyOrder && styles.iconActive]}>
@@ -300,11 +306,12 @@ const OrdersScreen = () => {
             <TouchableOpacity
               onPress={() => {
                 if (isMyOrder) {
-                  navigation.navigate('OrdersDeliveryScreen', { order });
+                  navigationUtils.navigate('OrdersDeliveryScreen', { order });
                 } else {
                   handleAcceptOrder(order);
                 }
               }}
+
               style={styles.actionButton}
             >
               <Text style={styles.actionText}>{isMyOrder ? 'Continuer' : 'Accepter'}</Text>
@@ -332,8 +339,9 @@ const OrdersScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.navigate('Profile')}
+          onPress={() => navigationUtils.navigate('Profile')}
           style={styles.welcomeBox}
+
         >
           {/* ... Profile Image Logic ... */}
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>

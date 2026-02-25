@@ -7,8 +7,9 @@ import LocationPermissionScreen from "../screens/LocationPermissionScreen";
 import SplashScreen from "../screens/SplashScreen";
 import { StatusBar } from "expo-status-bar";
 
+const Stack = createNativeStackNavigator();
+
 const AuthStack = () => {
-  const Stack = createNativeStackNavigator();
 
   return (
     <>

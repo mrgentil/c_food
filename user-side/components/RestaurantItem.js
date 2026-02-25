@@ -3,6 +3,8 @@ import { StarIcon, ClockIcon } from "react-native-heroicons/solid";
 import { HeartIcon } from "react-native-heroicons/solid";
 import { HeartIcon as HeartOutline } from "react-native-heroicons/outline";
 import { useNavigation } from "@react-navigation/native";
+import * as navigationUtils from "../utils/navigationUtils";
+
 import RestaurantRating from "./RestaurantRating";
 import { useState, useEffect } from "react";
 import { UserAuth } from "../contexts/AuthContext";
@@ -22,7 +24,7 @@ const RestaurantItem = ({
   minDeliveryTime,
   maxDeliveryTime,
 }) => {
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
   const { user } = UserAuth();
   const [isFavorite, setIsFavorite] = useState(false);
   const DEFAULT_IMAGE = "https://i.postimg.cc/qvhzT8XP/pastry.jpg";
@@ -69,9 +71,11 @@ const RestaurantItem = ({
   };
 
   return (
-    <Pressable
+    <TouchableOpacity
       onPress={() => {
-        navigation.navigate("Restaurant", { id });
+        navigationUtils.navigate("RestaurantDetails", {
+          id, title, rating, description, address, genre, image, lat, lng, minDeliveryTime, maxDeliveryTime
+        });
       }}
       className="bg-white mb-4 flex-row items-center cursor-pointer p-2 rounded-xl border border-gray-50"
     >
@@ -117,7 +121,7 @@ const RestaurantItem = ({
           <Text className="text-xs text-[#0EA5E9] font-medium">Livraison offerte</Text>
         </View>
       </View>
-    </Pressable>
+    </TouchableOpacity>
   );
 };
 

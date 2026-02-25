@@ -3,14 +3,17 @@ import { View, Text, ScrollView, TouchableOpacity, Alert, TextInput, Modal, Acti
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { ArrowLeftIcon, PlusIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, XMarkIcon } from 'react-native-heroicons/outline';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { navigationRef } from '../App';
+
 import PaymentModal from '../components/PaymentModal';
 import { UserAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { doc, onSnapshot, collection, query, where, orderBy, addDoc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
 
-const WalletScreen = () => {
-    const navigation = useNavigation();
+const WalletScreen = ({ navigation, route }) => {
+    // const navigation = useNavigation();
+    // const route = useRoute();
     const { user } = UserAuth();
     const [balance, setBalance] = useState(0);
     const [transactions, setTransactions] = useState([]);

@@ -16,8 +16,9 @@ import ReviewsScreen from "../screens/ReviewsScreen";
 import { UserAuth } from "../contexts/AuthContext";
 import TabNavigator from "./TabNavigator";
 
+const Stack = createNativeStackNavigator();
+
 const AppStack = () => {
-  const Stack = createNativeStackNavigator();
   const { dbUser } = UserAuth();
 
   return (

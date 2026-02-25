@@ -14,6 +14,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import * as navigationUtils from "../utils/navigationUtils";
+
 import { UserAuth } from "../contexts/AuthContext";
 import { EnvelopeIcon, LockClosedIcon, ExclamationCircleIcon, ArrowRightIcon } from "react-native-heroicons/outline";
 import { getFriendlyErrorMessage } from "../utils/firebaseErrors";
@@ -29,7 +31,8 @@ const SignUp = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [submissionError, setSubmissionError] = useState("");
   const [success, setSuccess] = useState("");
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
+
   const { createUser } = UserAuth();
 
   const validateEmail = (email) => {
@@ -71,8 +74,9 @@ const SignUp = () => {
     setIsLoading(true);
     try {
       await createUser(value.email, value.password);
-      navigation.navigate("User Details");
+      navigationUtils.navigate("UserDetails");
     } catch (error) {
+
       const friendlyMessage = getFriendlyErrorMessage(error.code);
       setSubmissionError(friendlyMessage);
     } finally {
@@ -201,7 +205,8 @@ const SignUp = () => {
                 <Text className="text-gray-500 font-medium">
                   Déjà inscrit ?
                 </Text>
-                <TouchableOpacity onPress={() => navigation.navigate("SignIn")} disabled={isLoading}>
+                <TouchableOpacity onPress={() => navigationUtils.navigate("SignIn")} disabled={isLoading}>
+
                   <Text className="text-[#0EA5E9] font-extrabold text-base">Se connecter</Text>
                 </TouchableOpacity>
               </View>

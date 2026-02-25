@@ -7,9 +7,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 
-const EditProfileScreen = () => {
+const EditProfileScreen = ({ navigation }) => {
     const { driverProfile, refreshProfile } = useAuth();
-    const navigation = useNavigation();
+    // const navigation = useNavigation();
+
     const [loading, setLoading] = useState(false);
 
     // Form state

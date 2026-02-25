@@ -1,7 +1,8 @@
 import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import React, { useEffect, useState } from "react";
-import { useNavigation } from "@react-navigation/native";
+import { navigationRef } from "../App";
+
 import { selectRestaurant } from "../features/restaurantSlice";
 import { selectUser } from "../features/userSlice";
 import { useSelector, useDispatch } from "react-redux";
@@ -37,13 +38,16 @@ import { XCircleIcon, PencilIcon, MapPinIcon, ClipboardDocumentListIcon, TicketI
 import { Modal, TextInput, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ActivityIndicator, Alert } from "react-native";
 
 const BasketScreen = () => {
-  const navigation = useNavigation();
+  // Use navigationRef.current directly in callbacks instead of storing it at render time
+  // (it may be null during initial render, causing crashes)
+
   const basketTotal = useSelector(selectBasketTotal);
   const restaurant = useSelector(selectRestaurant);
   const dbUser = useSelector(selectUser);
   const items = useSelector(selectBasketItems);
   const [groupItemsInBucket, setGroupItemsInBucket] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [paymentType, setPaymentType] = useState('now'); // 'now' or 'on_delivery'
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedOperator, setSelectedOperator] = useState(null);
 
@@ -216,8 +220,8 @@ const BasketScreen = () => {
         restaurantId: restaurant.id,
         restaurantAddress: restaurant.address,
         restaurantImage: restaurant.image,
-        restaurantLatitude: restaurant.lat,
-        restaurantLongitude: restaurant.lng,
+        restaurantLatitude: restaurant.lat || 0,
+        restaurantLongitude: restaurant.lng || 0,
         userId: user.uid,
         userFirstName: dbUser?.firstName || "Inconnu",
         userLastName: dbUser?.lastName || "",
@@ -241,15 +245,20 @@ const BasketScreen = () => {
         total: basketTotal + deliveryFee - discountAmount,
         promoCode: appliedPromo?.code || null,
         discountAmount: discountAmount,
-        paymentMethod: paymentDetails.operator,
-        paymentPhone: paymentDetails.phoneNumber,
-        paymentReference: paymentDetails.transactionRef,
+        discoountAmount: discountAmount,
+        discoountAmount: discountAmount,
+        paymentMethod: paymentType === 'on_delivery' ? 'Paiement à la livraison' : (paymentDetails.operator || "Numérique"),
+        paymentPhone: paymentDetails.phoneNumber || "",
+        paymentReference: paymentDetails.transactionRef || "",
         shwaryTransactionId: paymentDetails.fullResponse?.id || null, // Store Shwary ID
+        paymentType: paymentType, // 'now' or 'on_delivery'
+
 
         status: "pending",
-        paymentStatus: paymentDetails.paymentVerificationStatus || "paid", // 'paid' (sandbox), 'manual_check' (override)
-        paymentPhone: paymentDetails.phoneNumber,
-        paymentReference: paymentDetails.transactionRef,
+        status: "pending",
+        paymentStatus: paymentType === 'on_delivery' ? 'pending' : (paymentDetails.paymentVerificationStatus || "paid"),
+        paymentPhone: paymentDetails.phoneNumber || "",
+        paymentReference: paymentDetails.transactionRef || "",
 
         // 🚗 Multi-Vendor: Driver assignment (null until a driver accepts)
         driverId: null,
@@ -268,7 +277,8 @@ const BasketScreen = () => {
       });
 
       console.log("Order created with ID:", newOrderRef.id);
-      navigation.navigate("PreparingOrderScreen");
+      navigationRef.current?.navigate("PreparingOrderScreen");
+
     } catch (error) {
       console.error("Error creating order:", error);
       alert("Erreur lors de la création de la commande: " + error.message);
@@ -294,7 +304,7 @@ const BasketScreen = () => {
           <Text className="text-gray-500 text-center mb-8">Découvrez de délicieux plats près de chez vous !</Text>
           <AnimatedButton
             title="Retourner à l'accueil"
-            onPress={() => navigation.goBack()}
+            onPress={() => navigationRef.current?.goBack()}
             containerStyle="w-full"
           />
         </Animatable.View>
@@ -313,7 +323,7 @@ const BasketScreen = () => {
         <Animatable.View animation="fadeInDown" className="bg-white px-5 py-4 shadow-sm border-b border-gray-100 z-10">
           <View className="flex-row items-center">
             <TouchableOpacity
-              onPress={navigation.goBack}
+              onPress={() => navigationRef.current?.goBack()}
               className="bg-gray-100 p-2 rounded-full mr-4"
             >
               <ArrowLeftIcon size={20} color="black" />
@@ -483,60 +493,96 @@ const BasketScreen = () => {
           </Animatable.View>
 
           {/* Payment Section Title */}
-          <Animatable.View animation="fadeInUp" delay={600} className="mt-6 mb-2">
-            <Text className="text-lg font-extrabold text-gray-800 px-2">Paiement 💳</Text>
+          <Animatable.View animation="fadeInUp" delay={600} className="mt-6 mb-4">
+            <Text className="text-xl font-black text-gray-900 px-2 tracking-tight">Mode de Paiement 💳</Text>
+            <Text className="text-gray-500 text-xs px-2 mt-1">Choisissez quand et comment payer votre commande</Text>
           </Animatable.View>
 
-          {/* Payment Options Grid */}
-          <Animatable.View animation="fadeInUp" delay={700} className="flex-row flex-wrap gap-3 mb-6">
+          {/* Payment Type Toggle */}
+          <Animatable.View animation="fadeInUp" delay={650} className="bg-gray-100 p-1.5 rounded-2xl flex-row mb-6 mx-2">
             <TouchableOpacity
-              onPress={() => { setSelectedOperator('airtel'); setShowPaymentModal(true); }}
-              className="w-[48%] bg-white p-4 rounded-2xl items-center shadow-sm border border-gray-100 active:scale-95 duration-150"
+              onPress={() => setPaymentType('now')}
+              className={`flex-1 flex-row items-center justify-center py-3 rounded-xl ${paymentType === 'now' ? 'bg-white shadow-sm' : ''}`}
             >
-              <Image
-                source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Airtel_logo.svg/2560px-Airtel_logo.svg.png" }}
-                className="h-12 w-12 mb-2"
-                resizeMode="contain"
-              />
-              <Text className="font-bold text-gray-700 text-xs">Airtel Money</Text>
+              <Text className={`font-bold ${paymentType === 'now' ? 'text-[#0EA5E9]' : 'text-gray-500'}`}>Payer maintenant</Text>
             </TouchableOpacity>
-
             <TouchableOpacity
-              onPress={() => { setSelectedOperator('mpesa'); setShowPaymentModal(true); }}
-              className="w-[48%] bg-white p-4 rounded-2xl items-center shadow-sm border border-gray-100 active:scale-95 duration-150"
+              onPress={() => setPaymentType('on_delivery')}
+              className={`flex-1 flex-row items-center justify-center py-3 rounded-xl ${paymentType === 'on_delivery' ? 'bg-white shadow-sm' : ''}`}
             >
-              <Image
-                source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/M-PESA_LOGO-01.svg/2560px-M-PESA_LOGO-01.svg.png" }}
-                className="h-12 w-16 mb-2"
-                resizeMode="contain"
-              />
-              <Text className="font-bold text-gray-700 text-xs">M-Pesa</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => { setSelectedOperator('orange'); setShowPaymentModal(true); }}
-              className="w-[48%] bg-white p-4 rounded-2xl items-center shadow-sm border border-gray-100 active:scale-95 duration-150"
-            >
-              <Image
-                source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Orange_logo.svg/2560px-Orange_logo.svg.png" }}
-                className="h-12 w-12 mb-2"
-                resizeMode="contain"
-              />
-              <Text className="font-bold text-gray-700 text-xs">Orange Money</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => { setSelectedOperator('visa'); setShowPaymentModal(true); }}
-              className="w-[48%] bg-white p-4 rounded-2xl items-center shadow-sm border border-gray-100 active:scale-95 duration-150"
-            >
-              <Image
-                source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png" }}
-                className="h-12 w-16 mb-2"
-                resizeMode="contain"
-              />
-              <Text className="font-bold text-gray-700 text-xs">Visa / MasterCard</Text>
+              <Text className={`font-bold ${paymentType === 'on_delivery' ? 'text-[#0EA5E9]' : 'text-gray-500'}`}>À la livraison</Text>
             </TouchableOpacity>
           </Animatable.View>
+
+          {paymentType === 'now' ? (
+            /* Payment Options Grid */
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 24 }}>
+              <TouchableOpacity
+                onPress={() => { setSelectedOperator('airtel'); setShowPaymentModal(true); }}
+                style={{ width: '48%', marginBottom: 12 }}
+                className="bg-white p-5 rounded-3xl items-center shadow-sm border border-gray-100 active:scale-95"
+              >
+                <Image
+                  source={require('../assets/logos/airtel-money.png')}
+                  style={{ width: 40, height: 40, marginBottom: 8 }}
+                  resizeMode="contain"
+                />
+                <Text className="font-bold text-gray-800 text-xs">Airtel Money</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => { setSelectedOperator('mpesa'); setShowPaymentModal(true); }}
+                style={{ width: '48%', marginBottom: 12 }}
+                className="bg-white p-5 rounded-3xl items-center shadow-sm border border-gray-100 active:scale-95"
+              >
+                <Image
+                  source={require('../assets/logos/mpesa.png')}
+                  style={{ width: 56, height: 40, marginBottom: 8 }}
+                  resizeMode="contain"
+                />
+                <Text className="font-bold text-gray-800 text-xs">M-Pesa</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => { setSelectedOperator('orange'); setShowPaymentModal(true); }}
+                style={{ width: '48%', marginBottom: 12 }}
+                className="bg-white p-5 rounded-3xl items-center shadow-sm border border-gray-100 active:scale-95"
+              >
+                <Image
+                  source={require('../assets/logos/orange-money.png')}
+                  style={{ width: 40, height: 40, marginBottom: 8 }}
+                  resizeMode="contain"
+                />
+                <Text className="font-bold text-gray-800 text-xs">Orange Money</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => { setSelectedOperator('visa'); setShowPaymentModal(true); }}
+                style={{ width: '48%', marginBottom: 12 }}
+                className="bg-white p-5 rounded-3xl items-center shadow-sm border border-gray-100 active:scale-95"
+              >
+                <Image
+                  source={require('../assets/logos/visa.png')}
+                  style={{ width: 56, height: 40, marginBottom: 8 }}
+                  resizeMode="contain"
+                />
+                <Text className="font-bold text-gray-800 text-xs">Carte Bancaire</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            /* Cash on Delivery / Deferred Info Card */
+            <Animatable.View animation="fadeIn" duration={400} className="bg-blue-50 p-6 rounded-3xl border border-blue-100 mb-6 mx-2 flex-row items-center">
+              <View className="bg-white p-3 rounded-2xl shadow-sm mr-4">
+                <Text className="text-2xl">🛵</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="text-blue-900 font-extrabold text-base">Payer à la livraison</Text>
+                <Text className="text-blue-700 text-xs leading-4 mt-1">
+                  Payez par Mobile Money (Airtel, M-Pesa...) directement via l'application une fois votre colis arrivé.
+                </Text>
+              </View>
+            </Animatable.View>
+          )}
         </ScrollView>
 
         {/* Bottom Floating Summary */}
@@ -565,10 +611,18 @@ const BasketScreen = () => {
           </View>
 
           <TouchableOpacity
-            onPress={() => setShowPaymentModal(true)} // Default to showing modal to pick payment if not picking from grid
+            onPress={() => {
+              if (paymentType === 'on_delivery') {
+                createOrder({}); // Send empty payment object for deferred
+              } else {
+                setShowPaymentModal(true);
+              }
+            }}
             className="bg-[#0EA5E9] rounded-2xl p-4 flex-row items-center justify-center shadow-lg shadow-blue-200 active:bg-[#0284C7]"
           >
-            <Text className="text-white font-extrabold text-lg mr-2">Commander</Text>
+            <Text className="text-white font-extrabold text-lg mr-2">
+              {paymentType === 'on_delivery' ? 'Confirmer la commande' : 'Commander'}
+            </Text>
             <Text className="text-white font-extrabold text-lg bg-blue-600/30 px-2 py-0.5 rounded text-xs overflow-hidden">
               {formatPrice(basketTotal + deliveryFee - discountAmount)}
             </Text>

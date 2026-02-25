@@ -18,12 +18,15 @@ import { db } from '../firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import * as Animatable from 'react-native-animatable';
 import { useNavigation } from '@react-navigation/native';
+import * as navigationUtils from "../utils/navigationUtils";
+
 import { getFriendlyErrorMessage } from '../utils/firebaseErrors';
 
 const { width } = Dimensions.get('window');
 
 const AuthScreen = () => {
-    const navigation = useNavigation();
+    // const navigation = useNavigation();
+
     const { signInUser, createUser } = UserAuth();
 
     // State

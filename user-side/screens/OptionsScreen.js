@@ -6,8 +6,9 @@ import React from "react";
 import { UserAuth } from "../contexts/AuthContext";
 import { useEffect, useState } from "react";
 
-const OptionsScreen = () => {
-  const navigation = useNavigation();
+const OptionsScreen = ({ navigation }) => {
+  // const navigation = useNavigation();
+
   const [name, setName] = useState("");
   const { dbUser, signOutUser } = UserAuth();
 

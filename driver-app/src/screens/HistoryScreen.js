@@ -7,11 +7,12 @@ import { db } from "../../firebase/firebase"; // Fixed import path
 import { useAuth } from "../contexts/AuthContext";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 
-const HistoryScreen = () => {
+const HistoryScreen = ({ navigation }) => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const { driverProfile } = useAuth();
-    const navigation = useNavigation();
+    // const navigation = useNavigation();
+
 
     useEffect(() => {
         fetchHistory();

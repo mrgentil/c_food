@@ -8,9 +8,10 @@ import { collection, query, where, onSnapshot, addDoc, serverTimestamp, getDocs,
 import { UserAuth } from '../contexts/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 
-const OrdersScreen = () => {
+const OrdersScreen = ({ navigation }) => {
     const { user } = UserAuth();
-    const navigation = useNavigation();
+    // const navigation = useNavigation();
+
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);

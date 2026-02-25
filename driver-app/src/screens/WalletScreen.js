@@ -7,9 +7,10 @@ import { useAuth } from "../contexts/AuthContext";
 import { db } from "../../firebase/firebase";
 import { collection, query, where, orderBy, getDocs, limit } from "firebase/firestore";
 
-const WalletScreen = () => {
+const WalletScreen = ({ navigation }) => {
     const { driverProfile } = useAuth();
-    const navigation = useNavigation();
+    // const navigation = useNavigation();
+
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [balance, setBalance] = useState(driverProfile?.walletBalance || 0);

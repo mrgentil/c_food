@@ -43,22 +43,22 @@ const PaymentModal = ({ visible, onClose, operator, amount, onSubmit, defaultPho
         airtel: {
             name: 'Airtel Money',
             color: '#E31E24',
-            logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Airtel_logo.svg/2560px-Airtel_logo.svg.png',
+            logo: require('../assets/logos/airtel-money.png'),
         },
         mpesa: {
             name: 'M-Pesa',
             color: '#00A651',
-            logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/M-PESA_LOGO-01.svg/2560px-M-PESA_LOGO-01.svg.png',
+            logo: require('../assets/logos/mpesa.png'),
         },
         orange: {
             name: 'Orange Money',
             color: '#FF6B00',
-            logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Orange_logo.svg/2560px-Orange_logo.svg.png',
+            logo: require('../assets/logos/orange-money.png'),
         },
         visa: {
             name: 'Visa / MasterCard',
             color: '#1A1F71',
-            logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png',
+            logo: require('../assets/logos/visa.png'),
         }
     };
 
@@ -316,7 +316,7 @@ const PaymentModal = ({ visible, onClose, operator, amount, onSubmit, defaultPho
                                 {/* Operator Banner */}
                                 <View className="flex-row items-center bg-gray-50 p-4 rounded-2xl mb-6 border border-gray-100">
                                     <Image
-                                        source={{ uri: info.logo }}
+                                        source={info.logo}
                                         className="w-12 h-12 rounded-lg mr-4"
                                         resizeMode="contain"
                                     />

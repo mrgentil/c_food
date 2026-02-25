@@ -8,8 +8,9 @@ import { db } from '../firebase';
 import { collection, query, where, getDocs, updateDoc, doc, increment, addDoc, serverTimestamp, limit } from 'firebase/firestore';
 import { UserAuth } from '../contexts/AuthContext';
 
-const GiftCardScreen = () => {
-    const navigation = useNavigation();
+const GiftCardScreen = ({ navigation }) => {
+    // const navigation = useNavigation();
+
     const { user } = UserAuth();
     const [code, setCode] = useState('');
     const [loading, setLoading] = useState(false);

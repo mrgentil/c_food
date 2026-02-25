@@ -10,9 +10,11 @@ import { db } from '../firebase';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, updateDoc } from 'firebase/firestore';
 import AddressSearchAutocomplete from '../components/AddressSearchAutocomplete';
 
-const AddressBookScreen = () => {
-    const navigation = useNavigation();
+const AddressBookScreen = ({ navigation }) => {
     const { user } = UserAuth();
+    // const navigation = useNavigation();
+
+
     const [addresses, setAddresses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);

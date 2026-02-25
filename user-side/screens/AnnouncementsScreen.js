@@ -5,8 +5,9 @@ import { StatusBar } from 'expo-status-bar';
 import { ArrowLeftIcon, MegaphoneIcon } from 'react-native-heroicons/outline';
 import { useNavigation } from '@react-navigation/native';
 
-const AnnouncementsScreen = () => {
-    const navigation = useNavigation();
+const AnnouncementsScreen = ({ navigation }) => {
+    // const navigation = useNavigation();
+
 
     return (
         <View className="flex-1 bg-gray-50">

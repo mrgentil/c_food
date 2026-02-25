@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { navigationRef } from "../App";
+
 import { ArrowLeftIcon, MapPinIcon, CheckCircleIcon, ClipboardDocumentListIcon, PhoneIcon, ChatBubbleLeftRightIcon } from 'react-native-heroicons/outline';
 import { StarIcon } from 'react-native-heroicons/solid';
 import { StatusBar } from 'expo-status-bar';
@@ -15,10 +17,13 @@ import { doc, updateDoc, onSnapshot, getDoc, collection } from 'firebase/firesto
 import MapView, { Marker } from 'react-native-maps';
 import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 
-const OrderDetailsScreen = () => {
-  const route = useRoute();
-  const navigation = useNavigation();
+const OrderDetailsScreen = ({ route }) => {
+  // const route = useRoute();
+  // const navigation = useNavigation();
+  const navigation = navigationRef.current;
+
   const { order } = route.params;
+
   // État local avec mise à jour temps réel
   const [orderData, setOrderData] = useState(order);
   const [driverInfo, setDriverInfo] = useState(null);
@@ -254,9 +259,10 @@ const OrderDetailsScreen = () => {
 
       {/* Header */}
       <Animatable.View animation="fadeInDown" className="bg-white px-5 py-4 shadow-sm border-b border-gray-100 flex-row items-center z-10">
-        <TouchableOpacity onPress={navigation.goBack} className="bg-gray-100 p-2 rounded-full mr-4">
+        <TouchableOpacity onPress={() => navigationRef.current?.goBack()} className="bg-gray-100 p-2 rounded-full mr-4">
           <ArrowLeftIcon size={20} color="black" />
         </TouchableOpacity>
+
         <View className="flex-1">
           <Text className="text-xl font-extrabold text-gray-900">Suivi de commande</Text>
           <Text className="text-gray-500 text-xs font-mono">ID: {orderData.id.slice(0, 8)}</Text>
@@ -542,7 +548,71 @@ const OrderDetailsScreen = () => {
 
         {/* Payment Logic */}
         <Animatable.View animation="fadeInUp" delay={600} className="mt-6 mb-8">
-          {(!orderData.paymentReference && !orderData.paymentMethod) ? (
+          {(orderData.paymentMethod === 'Paiement à la livraison' && orderData.paymentStatus === 'pending') ? (
+            <View>
+              <View className="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-4 flex-row items-center">
+                <View className="bg-white p-2 rounded-full mr-3 text-center">
+                  <Text className="text-xl">🛵</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="font-bold text-blue-800">Paiement à la livraison</Text>
+                  <Text className="text-blue-600 text-xs">Vous pouvez payer maintenant ou à l'arrivée.</Text>
+                </View>
+              </View>
+
+              <Text className="font-bold text-gray-800 mb-3 ml-2">Payer numériquement maintenant 💳</Text>
+
+              <View className="flex-row gap-3">
+                <TouchableOpacity
+                  onPress={() => { setSelectedOperator('airtel'); setShowPaymentModal(true); }}
+                  className="flex-1 bg-white p-3 rounded-2xl items-center shadow-sm border border-gray-100 active:scale-95 duration-150"
+                >
+                  <Image
+                    source={require('../assets/logos/airtel-money.png')}
+                    className="w-12 h-12 mb-2"
+                    resizeMode="contain"
+                  />
+                  <Text className="font-bold text-gray-700 text-xs">Airtel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => { setSelectedOperator('mpesa'); setShowPaymentModal(true); }}
+                  className="flex-1 bg-white p-3 rounded-2xl items-center shadow-sm border border-gray-100 active:scale-95 duration-150"
+                >
+                  <Image
+                    source={require('../assets/logos/mpesa.png')}
+                    className="w-12 h-12 mb-2"
+                    resizeMode="contain"
+                  />
+                  <Text className="font-bold text-gray-700 text-xs">M-Pesa</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => { setSelectedOperator('orange'); setShowPaymentModal(true); }}
+                  className="flex-1 bg-white p-3 rounded-2xl items-center shadow-sm border border-gray-100 active:scale-95 duration-150"
+                >
+                  <Image
+                    source={require('../assets/logos/orange-money.png')}
+                    className="w-12 h-12 mb-2"
+                    resizeMode="contain"
+                  />
+                  <Text className="font-bold text-gray-700 text-xs">Orange</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => { setSelectedOperator('visa'); setShowPaymentModal(true); }}
+                  className="flex-1 bg-white p-3 rounded-2xl items-center shadow-sm border border-gray-100 active:scale-95 duration-150"
+                >
+                  <Image
+                    source={require('../assets/logos/visa.png')}
+                    className="w-12 h-12 mb-2"
+                    resizeMode="contain"
+                  />
+                  <Text className="font-bold text-gray-700 text-xs">Carte</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (orderData.paymentStatus === 'pending' && !orderData.paymentMethod) ? (
             <View>
               <View className="bg-red-50 p-4 rounded-xl border border-red-100 mb-4 flex-row items-center">
                 <View className="bg-white p-2 rounded-full mr-3">
@@ -553,40 +623,7 @@ const OrderDetailsScreen = () => {
                   <Text className="text-red-600 text-xs">Réglez votre commande pour la valider.</Text>
                 </View>
               </View>
-
-              <Text className="font-bold text-gray-800 mb-3 ml-2">Choisir un moyen de paiement</Text>
-
-              <View className="flex-row gap-3">
-                <TouchableOpacity
-                  onPress={() => { setSelectedOperator('airtel'); setShowPaymentModal(true); }}
-                  className="flex-1 bg-white p-3 rounded-2xl items-center shadow-sm border border-gray-100 active:scale-95 duration-150"
-                >
-                  <View className="bg-red-100 w-12 h-12 rounded-full items-center justify-center mb-2">
-                    <Text className="text-xl">📱</Text>
-                  </View>
-                  <Text className="font-bold text-gray-700 text-xs">Airtel</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => { setSelectedOperator('mpesa'); setShowPaymentModal(true); }}
-                  className="flex-1 bg-white p-3 rounded-2xl items-center shadow-sm border border-gray-100 active:scale-95 duration-150"
-                >
-                  <View className="bg-green-100 w-12 h-12 rounded-full items-center justify-center mb-2">
-                    <Text className="text-xl">💚</Text>
-                  </View>
-                  <Text className="font-bold text-gray-700 text-xs">M-Pesa</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => { setSelectedOperator('orange'); setShowPaymentModal(true); }}
-                  className="flex-1 bg-white p-3 rounded-2xl items-center shadow-sm border border-gray-100 active:scale-95 duration-150"
-                >
-                  <View className="bg-orange-100 w-12 h-12 rounded-full items-center justify-center mb-2">
-                    <Text className="text-xl">🟠</Text>
-                  </View>
-                  <Text className="font-bold text-gray-700 text-xs">Orange</Text>
-                </TouchableOpacity>
-              </View>
+              {/* Similar Payment Options as above could be here if needed */}
             </View>
           ) : (
             <View className={`p-4 rounded-2xl border flex-row items-center shadow-sm ${orderData.paymentStatus === 'paid' ? 'bg-green-50 border-green-100' : 'bg-yellow-50 border-yellow-100'
@@ -610,6 +647,7 @@ const OrderDetailsScreen = () => {
               </View>
             </View>
           )}
+
 
           {/* Rating Button */}
           {orderData.status?.toLowerCase() === 'delivered' && (
@@ -659,7 +697,8 @@ const OrderDetailsScreen = () => {
             Alert.alert(
               'Paiement enregistré ! ✅',
               'Votre paiement sera vérifié sous peu.',
-              [{ text: 'OK', onPress: () => navigation.goBack() }]
+              [{ text: 'OK', onPress: () => navigationRef.current?.goBack() }]
+
             );
           } catch (error) {
             console.error('Error updating payment:', error);

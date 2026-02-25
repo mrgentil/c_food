@@ -1,6 +1,8 @@
 import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator } from "react-native";
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { navigationRef } from "../App";
+
 import {
   ArrowLeftIcon,
   ChevronRightIcon,
@@ -28,17 +30,22 @@ import {
 } from "firebase/firestore";
 import { StatusBar } from "expo-status-bar";
 
-const RestaurantDetails = () => {
-  const navigation = useNavigation();
+const RestaurantDetails = ({ navigation, route }) => {
+  // const navigation = useNavigation();
+
   const dispatch = useDispatch();
   const [dishes, setDishes] = useState([]);
   const [restaurantInfo, setRestaurantInfo] = useState([]);
   const [loading, setLoading] = useState(true);
   const [recentReviews, setRecentReviews] = useState([]);
 
+  /*
   const {
     params: { id },
   } = useRoute();
+  */
+  const id = route?.params?.id;
+
 
   const restaurantUid = id;
 

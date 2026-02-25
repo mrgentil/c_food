@@ -8,18 +8,22 @@ import {
   SparklesIcon,
 } from "react-native-heroicons/solid";
 import { useNavigation } from "@react-navigation/native";
+import * as navigationUtils from "../utils/navigationUtils";
+
 
 const SearchCard = ({ results }) => {
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
+
   const id = results.restaurantId ? results.restaurantId : results.id;
 
   return (
     <Pressable
       onPress={() => {
-        navigation.navigate("Restaurant", {
+        navigationUtils.navigate("Restaurant", {
           id,
         });
       }}
+
       className="mx-auto my-4 rounded-2xl w-11/12 h-32 border border-gray-100 space-x-1 flex-row overflow-hidden"
     >
       <View className="h-32 w-32 my-auto">

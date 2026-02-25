@@ -24,8 +24,9 @@ import { UserAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 
-const ProfileScreen = () => {
-  const navigation = useNavigation();
+const ProfileScreen = ({ navigation }) => {
+  // const navigation = useNavigation();
+
   const { user, signOutUser } = UserAuth();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);

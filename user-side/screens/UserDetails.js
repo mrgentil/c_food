@@ -37,10 +37,11 @@ import * as ImagePicker from 'expo-image-picker';
 
 const { width } = Dimensions.get('window');
 
-const UserDetails = () => {
+const UserDetails = ({ navigation }) => {
   const [locationPermission, setLocationPermission] = useState(null);
   const [location, setLocation] = useState(null);
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");

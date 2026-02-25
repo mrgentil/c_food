@@ -4,8 +4,9 @@ import AuthStack from "../navigation/AuthStack";
 import AppStack from "../navigation/AppStack";
 import { UserAuth } from "../contexts/AuthContext";
 
+const Stack = createNativeStackNavigator();
+
 const RootNavigator = () => {
-  const Stack = createNativeStackNavigator();
   const { user } = UserAuth();
 
   return (

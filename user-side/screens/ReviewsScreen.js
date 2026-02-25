@@ -7,10 +7,11 @@ import { StatusBar } from 'expo-status-bar';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 
-const ReviewsScreen = () => {
-    const navigation = useNavigation();
-    const route = useRoute();
+const ReviewsScreen = ({ navigation, route }) => {
+    // const navigation = useNavigation();
+    // const route = useRoute();
     const { restaurantId, restaurantName } = route.params;
+
 
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);

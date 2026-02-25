@@ -9,6 +9,8 @@ const Settings = () => {
     image: "",
     address: "",
     genre: "",
+    lat: 0,
+    lng: 0,
   });
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState(null);
@@ -24,6 +26,8 @@ const Settings = () => {
         image: restaurant.image || "",
         address: restaurant.address || "",
         genre: restaurant.genre || "",
+        lat: restaurant.lat || 0,
+        lng: restaurant.lng || 0,
       });
     }
   }, [restaurant]);
@@ -156,6 +160,34 @@ const Settings = () => {
                 onChange={handleInputChange}
                 className="w-full border border-gray-300 rounded-2xl py-2 px-3 mt-4 focus:outline-none focus:ring focus:ring-green-200 focus:border-green-300"
                 placeholder="Type de cuisine"
+              />
+            </div>
+          </div>
+          <div className="rounded-3xl bg-white shadow-md">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-900">Latitude</h3>
+              <input
+                type="number"
+                step="any"
+                name="lat"
+                value={restaurantData.lat}
+                onChange={handleInputChange}
+                className="w-full border border-gray-300 rounded-2xl py-2 px-3 mt-4 focus:outline-none focus:ring focus:ring-green-200 focus:border-green-300"
+                placeholder="Ex: -4.325"
+              />
+            </div>
+          </div>
+          <div className="rounded-3xl bg-white shadow-md">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-900">Longitude</h3>
+              <input
+                type="number"
+                step="any"
+                name="lng"
+                value={restaurantData.lng}
+                onChange={handleInputChange}
+                className="w-full border border-gray-300 rounded-2xl py-2 px-3 mt-4 focus:outline-none focus:ring focus:ring-green-200 focus:border-green-300"
+                placeholder="Ex: 15.322"
               />
             </div>
           </div>

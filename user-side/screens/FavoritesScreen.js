@@ -10,9 +10,10 @@ import { doc, getDoc, collection, getDocs, query, where, documentId, updateDoc, 
 import { UserAuth } from '../contexts/AuthContext';
 import RestaurantRating from '../components/RestaurantRating';
 
-const FavoritesScreen = () => {
+const FavoritesScreen = ({ navigation }) => {
     const { user } = UserAuth();
-    const navigation = useNavigation();
+    // const navigation = useNavigation();
+
     const [favorites, setFavorites] = useState([]);
     const [loading, setLoading] = useState(true);
 
